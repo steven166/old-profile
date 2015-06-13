@@ -5,7 +5,7 @@ self.addEventListener('install', function (event) {
     event.waitUntil(
         cachesPolyfill.open('myapp-static-v1').then(function (cache) {
             return cache.addAll([
-                '/'
+                'index.html'
                 //'/activities/',
                 //'/js/_app.js',
                 //'/js/_init.js',
