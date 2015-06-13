@@ -1,6 +1,6 @@
 //Install service worker
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw2.js').then(function(registration) {
+    navigator.serviceWorker.register('sw3.js').then(function(registration) {
         // Registration was successful
         console.log('ServiceWorker registration successful with scope: ',    registration.scope);
     }).catch(function(err) {
