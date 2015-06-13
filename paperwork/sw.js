@@ -1,17 +1,17 @@
-//
-//var CACHE_NAME = 'paperwork-api-cache-v1';
-//var urlsToCache = [
-//    '/',
-//    '/activities/',
-//    '/js/_app.js',
-//    '/js/_init.js',
-//    '/images/',
-//    '../../shared/images/icons/',
-//    '../../shared/css/icons/',
-//    '../../shared/css/paper-bundle.css',
-//    '../../shared/js/jquery.min.js',
-//    '../../shared/js/paper-bundle.js'
-//];
+
+var CACHE_NAME = 'paperwork-api-cache-v1';
+var urlsToCache = [
+    '/',
+    '/activities/',
+    '/js/_app.js',
+    '/js/_init.js',
+    '/images/',
+    '../../shared/images/icons/',
+    '../../shared/css/icons/',
+    '../../shared/css/paper-bundle.css',
+    '../../shared/js/jquery.min.js',
+    '../../shared/js/paper-bundle.js'
+];
 
 //self.addEventListener('install', function(event) {
 //    // Perform install steps
@@ -74,6 +74,14 @@ console.log("SW startup");
 
 self.addEventListener('install', function(event) {
     console.log("SW installed");
+    // Perform install steps
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(function(cache) {
+                console.log('Opened cache');
+                return cache.addAll(urlsToCache);
+            })
+    );
 });
 
 self.addEventListener('activate', function(event) {
