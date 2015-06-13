@@ -1,0 +1,18 @@
+<template activity="get-started">
+
+</template>
+<script>
+    app.activity("get-started", function(){
+        this.title = "Get Started";
+
+        this.onCreate = function(){
+            setTimeout(function(){
+                app.setTheme("green");
+            }, 20);
+        };
+
+        this.onDestroy = function(){
+            app.setTheme(app.color);
+        };
+    });
+</script>

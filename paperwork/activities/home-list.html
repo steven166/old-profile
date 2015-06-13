@@ -1,0 +1,135 @@
+<template activity="home-list">
+    <style>
+        [activity=home-list] .list-container{
+            width: 50%;
+            padding: 20px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            margin-left: 25%;
+            box-shadow: rgba(0, 0, 0, 0.227451) 0px 3px 10px 0px, rgba(0, 0, 0, 0.156863) 0px 3px 10px 0px;
+            transition-property: all;
+            transition-duration: 0.2s;
+        }
+
+        [activity=home-list][pos="xxo"] .list-container{
+            width: 75%;
+            margin-left: 12.5%;
+        }
+
+        [activity=home-list][pos="xoo"] .list-container{
+            width: 100%;
+            margin: 0px;
+            padding: 0px;
+            box-shadow: none;
+        }
+    </style>
+    <div class="list-container">
+        <ul class="paper-list">
+            <li class="wrippels medium fg-green push-left" name="get-started">
+                <div class="icon">
+                    <i class="mdi-av-play-circle-fill"></i>
+                </div>
+                <div class="title main">Get Started</div>
+                <div class="title sub">A quick guide to get you started with PaperWork</div>
+            </li>
+            <li class="wrippels medium push-left fg-teal" name="general">
+                <div class="icon"><i style="background-image: url('../../shared/images/icons/icon-4x.png')"></i></div>
+                <div class="title main">General</div>
+                <div class="title sub">The core of Paperwork</div>
+            </li>
+            <li class="wrippels medium push-left fg-blue" name="colors">
+                <div class="icon"><i class="mdi-image-brush"></i></div>
+                <div class="title main">Colors</div>
+                <div class="title sub">Predefined Colors and Theme's</div>
+            </li>
+            <li class="wrippels medium push-left fg-deep-orange" name="icons">
+                <div class="icon"><i class="mdi-image-filter-vintage"></i></div>
+                <div class="title main">Icons</div>
+                <div class="title sub">Build in icons, ready to use</div>
+            </li>
+            <li class="wrippels medium push-left fg-pink" name="tips-and-tricks">
+                <div class="icon"><i class="mdi-action-favorite"></i></div>
+                <div class="title main">Tips and Tricks</div>
+                <div class="title sub">Use full tips and tricks to improve your App</div>
+            </li>
+            <li class="header">Modules</li>
+            <li class="wrippels medium push-left fg-blue-gray" name="module-app">
+                <div class="icon"><i class="mdi-action-extension"></i></div>
+                <div class="title main">App</div>
+                <div class="title sub">Advanced framework to make WebApps on the flow</div>
+            </li>
+            <li class="wrippels medium push-left fg-blue-gray" name="module-header">
+                <div class="icon"><i class="mdi-action-extension"></i></div>
+                <div class="title main">Header</div>
+                <div class="title sub">Material Design Headers, Just like Android</div>
+            </li>
+            <li class="wrippels medium push-left fg-blue-gray" name="module-list">
+                <div class="icon"><i class="mdi-action-extension"></i></div>
+                <div class="title main">List</div>
+                <div class="title sub">Help you align your list items</div>
+            </li>
+            <li class="wrippels medium push-left fg-blue-gray" name="module-buttons">
+                <div class="icon"><i class="mdi-action-extension"></i></div>
+                <div class="title main">Buttons</div>
+                <div class="title sub">Normal and Float Buttons</div>
+            </li>
+            <li class="wrippels medium push-left fg-blue-gray" name="module-forms">
+                <div class="icon"><i class="mdi-action-extension"></i></div>
+                <div class="title main">Forms</div>
+                <div class="title sub">Textfields, Checkboxes, Switches, ...</div>
+            </li>
+            <li class="wrippels medium push-left fg-blue-gray" name="module-progress">
+                <div class="icon"><i class="mdi-action-extension"></i></div>
+                <div class="title main">Progress</div>
+                <div class="title sub">Load Spinners, and ProgressBars</div>
+            </li>
+            <li class="wrippels medium push-left fg-blue-gray" name="module-snackbar-and-toast">
+                <div class="icon"><i class="mdi-action-extension"></i></div>
+                <div class="title main">Snackbar and toast</div>
+                <div class="title sub">Simple and nice notification</div>
+            </li>
+            <li class="wrippels medium push-left fg-blue-gray" name="module-alerts">
+                <div class="icon"><i class="mdi-action-extension"></i></div>
+                <div class="title main">Alerts</div>
+                <div class="title sub">Alertbox to inform, ask question or warn the user</div>
+            </li>
+        </ul>
+    </div>
+</template>
+<script>
+    app.activity("home-list", function(){
+
+        var timeout;
+
+        this.onCreate = function(eActivity){
+            var urlData = app.getUrlData();
+            if(urlData.acts.length >= 1) {
+                eActivity.find("ul.paper-list li[name=" + urlData.acts[0].activity + "]").addClass("selected");
+            }
+        };
+
+        $("body").on("click", "[activity=home-list] ul.paper-list li", function(){
+            if(this.nodeName === "LI"){
+                var tthis = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(function(){
+                    app.goToActivity($(tthis).attr("name"), 2);
+                }, 100);
+            }
+        });
+
+        $("body").on("navigate", function(event, url, urlData){
+            onNavigate(urlData);
+        });
+
+        function onNavigate(urlData){
+            if(urlData.group === "home"){
+                $("[activity=home-list] ul.paper-list li").removeClass("selected");
+                if(urlData.acts.length >= 1) {
+                    $("[activity=home-list] ul.paper-list li[name=" + urlData.acts[0].activity + "]").addClass("selected");
+                }
+            }
+        }
+
+    });
+</script>

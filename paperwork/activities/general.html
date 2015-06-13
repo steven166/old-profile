@@ -1,0 +1,18 @@
+<template activity="general">
+
+</template>
+<script>
+    app.activity("general", function(){
+        this.title = "General";
+
+        this.onCreate = function(){
+            setTimeout(function(){
+                app.setTheme("teal");
+            }, 20);
+        };
+
+        this.onDestroy = function(){
+            app.setTheme(app.color);
+        };
+    });
+</script>

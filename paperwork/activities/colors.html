@@ -1,0 +1,110 @@
+<template activity="colors">
+    <style>
+        [activity=colors] article{
+            padding: 20px;
+        }
+
+        [activity=colors] .text{
+            color: #333333;
+            font-size: 13px;
+        }
+
+        [activity=colors] .text code{
+            display: block;
+            margin: 10px 0;
+            padding: 10px 20px;
+            font-size: 13px;
+            border-radius: 3px;
+            color: black;
+            background-color: #cccccc;
+            font-family: monospace;
+        }
+
+        [activity=colors] .palette > div{
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 3px;
+            box-shadow: rgba(0, 0, 0, 0.227451) 0px 3px 10px 0px, rgba(0, 0, 0, 0.156863) 0px 3px 10px 0px;
+        }
+
+        [activity=colors] .palette > div > code {
+            float: right;
+            font-family: monospace;
+        }
+    </style>
+    <article class="selectable">
+        <h1 class="theme-fg-color">Colors</h1>
+        <div class="text">
+            <p>
+                PaperWork comes with a great support for colors that work harmoniously with each other.
+                For full documentation on how and when to use specific colors: <a target="_blank" href="http://www.google.com/design/spec/style/color.html">see 'Material Design - Color'</a>
+            </p>
+            <p>
+                To use these colors just add a class to your element.
+                <code>
+                    &lt;div class=&quot;light-green&quot;&gt;I have a light green background-color&lt;/div&gt;<br>
+                    &lt;div class=&quot;fg-light-green&quot;&gt;I have a light green foreground color&lt;/div&gt;
+                </code>
+                You can replace the class "light-green" and "fg-light-green" with any other color listed in the color palette below.
+                These colors work great with all the modules of PaperWork!
+            </p>
+        </div>
+        <h3 class="theme-fg-color">Themes</h3>
+        <div class="text">
+            <p>
+                With Themes you can set the default color for your app.
+                Just add a theme class to your root element.
+                <code>
+                    &lt;body class=&quot;theme-blue&quot;&gt;
+                </code>
+                Then you can set a specific element to use this theme color.
+                <code>
+                    &lt;div class=&quot;theme-color&quot;&gt;I have a blue background-color&lt;/div&gt;<br>
+                    &lt;div class=&quot;theme-fg-color&quot;&gt;I have a blue foreground color&lt;/div&gt;
+                </code>
+                The PaperWork modules use by default the theme colors.
+            </p>
+        </div>
+        <h3 class="theme-fg-color">Color palette</h3>
+        <div class="palette">
+            <div class="red">Red<code>#F44336</code></div>
+            <div class="pink">Pink<code>#E91E63</code></div>
+            <div class="purple">Purple<code>#9C27B0</code></div>
+            <div class="deep-purple">Deep Purple<code>#673AB7</code></div>
+            <div class="indigo">Indigo<code>#3F51B5</code></div>
+            <div class="blue">Blue<code>#2196F3</code></div>
+            <div class="light-blue">Light Blue<code>#03A9F4</code></div>
+            <div class="cyan">Cyan<code>#00BCD4</code></div>
+            <div class="teal">Teal<code>#009688</code></div>
+            <div class="green">Green<code>#4CAF50</code></div>
+            <div class="light-green">Light Green<code>#8BC34A</code></div>
+            <div class="lime">Lime<code>#CDDC39</code></div>
+            <div class="yellow">Yellow<code>#FFEB3B</code></div>
+            <div class="amber">Amber<code>#FFC107</code></div>
+            <div class="orange">Orange<code>#FF9800</code></div>
+            <div class="deep-orange">Deep Orange<code>#FF5722</code></div>
+            <div class="brown">Brown<code>#795548</code></div>
+            <div class="gray">Gray<code>#9E9E9E</code></div>
+            <div class="light-gray">Light Gray<code>#CCCCCC</code></div>
+            <div class="dark-gray">Dark Gray<code>#333333</code></div>
+            <div class="blue-gray">Blue Gray<code>#607D8B</code></div>
+            <div class="white">White<code>#FFFFFF</code></div>
+            <div class="black">Black<code>#000000</code></div>
+        </div>
+    </article>
+</template>
+<script>
+    app.activity("colors", function(){
+        this.title = "Colors";
+
+        this.onCreate = function(){
+            setTimeout(function(){
+                app.setTheme("blue");
+            }, 20);
+        };
+
+        this.onDestroy = function(){
+            app.setTheme(app.color);
+        };
+    });
+</script>

@@ -1,0 +1,290 @@
+<template activity="module-app">
+    <style>
+        [activity=module-app] article{
+            padding: 20px;
+        }
+
+        [activity=module-app] .text{
+            color: #333333;
+            font-size: 13px;
+        }
+
+        [activity=module-app] .text code{
+            display: inline-block;
+            margin: 0 5px;
+            padding: 5px 10px;
+            font-size: 13px;
+            border-radius: 3px;
+            color: black;
+            background-color: #eeeeee;
+            font-family: monospace;
+        }
+
+        [activity=module-app] .text code.block{
+            display: block;
+            margin: 10px 0;
+            padding: 10px 20px;
+        }
+
+        [activity=module-app] .image-container{
+            display: inline-block;
+            margin: 5px;
+        }
+
+        [activity=module-app] .image-container .img{
+            width: 300px;
+            height: 170px;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        [activity=module-app] .image-container span{
+            display: block;
+            padding: 5px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        [activity=module-app] h4{
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        [activity=module-app] h4 code{
+            display: inline;
+            font-weight: bold;
+        }
+
+        [activity=module-app] pre{
+            display: inline;
+            font-family: monospace;
+        }
+
+        [activity=module-app] nav h5{
+            margin-bottom: 0;
+        }
+
+        [activity=module-app] nav ul{
+            list-style: none;
+            font-size: 13px;
+            padding-left: 10px;
+        }
+
+        [activity=module-app] nav ul a{
+            cursor: pointer;
+        }
+    </style>
+    <article class="selectable">
+        <h1 class="theme-fg-color">App</h1>
+        <div class="text">
+            <p>
+                The <code>paper-app</code> module is a powerful module for PaperWork. It contains a framework for making WebApps.
+            </p>
+        </div>
+        <nav>
+            <h5 class="fg-gray">Contents</h5>
+            <ul>
+                <li><a class="theme-fg-color" link-name="how-does-it-work">How does it work?</a></li>
+                <li><a class="theme-fg-color" link-name="how-to-make-a-paperwork-app">How to make a PaperWork App?</a></li>
+                <li><a class="theme-fg-color" link-name="example">Example</a></li>
+            </ul>
+        </nav>
+        <h3 class="theme-fg-color" name="how-does-it-work">How does it work?</h3>
+        <div class="text">
+            <p>
+                An PaperWork app is made out of <code>Activities</code>, just like Android. Every window or part of the screen is an Activity.
+                To display these Activities on the screen, we use an <code>ActivityGroup</code>.
+                An ActivityGroup is almost the same as an page, it is an collection of maximum 3 Activities.
+                These different Activities within an ActivityGroup are used to create an responsive design.
+            </p>
+            <p>
+                <div class="image-container">
+                    <div class="img" style="background-image: url(images/responsive-large.png)"></div>
+                    <span>Desktop</span>
+                </div>
+                <div class="image-container">
+                    <div class="img" style="background-image: url(images/responsive-medium.png)"></div>
+                    <span>Tablet</span>
+                </div>
+                <div class="image-container">
+                    <div class="img" style="background-image: url(images/responsive-small.png)"></div>
+                    <span>Phone</span>
+                </div>
+            </p>
+            <p>
+                On a desktop all activities are always visible. On a tablet there are maximum 2 activities at the time visible. If there are 3 activities, then the first one will be hidden.
+                On a phone there can only be one activity visible at the time. If there are more than 1 activity, then the last one will be visible, the others will be hidden.
+            </p>
+        </div>
+        <h3 class="theme-fg-color" name="how-to-make-a-paperwork-app">How to make a PaperWork App?</h3>
+        <div class="text">
+            <p>
+                <h4>1. Create a new <code>App</code> object in JavaScript.</h4>
+                <code class="block">
+                    var app = paper.app.create("My App", "blue");
+                </code>
+                The first argument is the name of your app. The second one is the theme color.
+                For the full list and info about theme colors, see <a href="#!home/colors">Colors</a>.
+                Read more about the <a href="#!home/module-app/object-app">App object</a>.
+            </p>
+            <p>
+                <h4>2. Define a new <code>ActivityGroup</code></h4>
+                <code class="block">
+                    app.group("home", function(){<br>
+                    <br>
+                    };
+                </code>
+                The first argument is the name of the ActivityGroup. The first ActivityGroup of your App should always called <code>"home"</code>.
+                The second argument is used as the ActivityGroup object. In here you can set properties of your ActivityGroup.
+                Read more about the <a href="#!home/module-app/object-activitygroup">ActivityGroup object</a>.
+            </p>
+            <p>
+                <h4>3. Create the first <code>Activity</code></h4>
+                <code class="block">
+                    app.activity("first-activity", function(){<br>
+                    <br>
+                    });
+                </code>
+                The first argument is the name of the Activity.
+                The second argument is used as the Activity object. You can compare this object with an Activity class in Android.
+                There is, fore example an <code>onCreate</code> that you can override. Read more about the <a href="#!home/module-app/object-activity">Activity object</a>.
+            </p>
+            <p>
+                <h4>4. Set in ActivityGroup <code>home</code> the first activity to <code>first-activity</code></h4>
+                Declare inside your <code>home</code> group the variable <code>this.activity_1</code>, and set it equal to the name of the first activity.
+                <code class="block">
+                    app.group("home", function(){<br>
+                    <pre>    this.activity_1 = "first-activity";</pre><br>
+                    });
+                </code>
+                You only have to declare the first activity inside an ActivityGroup.
+            </p>
+            <p>
+                <h4>5. Attach HTML to the First Activity</h4>
+                Add the following code the <code>&lt;body&gt;</code> of your HTML document
+                <code class="block">
+                    &lt;div activity=&quot;first-activity&quot;&gt;<br>
+                    <pre>    &lt;button id=&quot;add-button&quot;&gt;Add&lt;/button&gt;</pre><br>
+                    &lt;/div&gt;
+                </code>
+                This html is automatically loaded into your activity-body.
+                <b>Note: </b>The value of the <code>activity</code> attribute have to be the same as the name of the activity.
+            </p>
+            <p>
+                <h4>6. Bind an event listener to the <code>#add-button</code></h4>
+                When the <code>onCreate</code> function is called, it passes the html in a <code>jQuery</code> object.
+                In the jQuery object we search for the <code>#add-button</code>. And bind a click event listener to that button.
+                <code class="block">
+                    app.activity("first-activity", function(){<br><br>
+                    <pre>    this.onCreate = function(eActivity){<br></pre>
+                    <pre>        eActivity.find("#add-button").click(function(){<br></pre>
+                    <pre>            //Handle click</pre><br>
+                    <pre>        });</pre><br><br>
+                    <pre>    };</pre><br><br>
+                    });
+                </code>
+            </p>
+            <p>
+                <h4>6. Navigate to the second activity</h4>
+                <code class="block">
+                    app.activity("first-activity", function(){<br><br>
+                    <pre>    this.onCreate = function(eActivity){<br></pre>
+                    <pre>        eActivity.find("#add-button").click(function(){<br></pre>
+                    <pre>            //Handle click</pre><br>
+                    <pre>            app.goToActivity("second-activity", 2);<br></pre>
+                    <pre>        });</pre><br>
+                    <pre>    };</pre><br><br>
+                    });
+                </code>
+                The app object can be used to navigate through your application.
+                For example: to open a new activity use the function: <code>app.goToActivity("second-activity", 2);</code>.
+                The first argument is the name of the new activity to open. The second one is the place in the ActivityGroup.
+                You can only set the second and third places in the ActivityGroup. The first have to be always defined inside the ActivityGroup it self.
+            </p>
+            <p>
+                <h4>8. Create a second activity</h4>
+                <code class="block">
+                    app.activity("second-activity", function(){<br>
+                    <br>
+                    <pre>    this.title = "Second Activity";</pre><br>
+                    <br>
+                    });
+                </code>
+                if <code>this.title</code> is defined in an Activity, it automatically sets the title in the header of the activity to this value.
+            </p>
+            <p>
+                <h4>9. Finally initialize the app</h4>
+                <code class="block">
+                    app.init();
+                </code>
+            </p>
+        </div>
+        <h3 class="theme-fg-color" name="example">Example</h3>
+        <div class="text">
+            <code class="block">
+                &lt;!DOCTYPE html&gt;<br>
+                &lt;html&gt;<br>
+                &lt;head&gt;<br>
+                <pre>    &lt;link rel=&quot;stylesheet&quot; href=&quot;icons/google_icons.css&quot;/&gt;</pre><br>
+                <pre>    &lt;link rel=&quot;stylesheet&quot; href=&quot;paperwork.css&quot;/&gt;</pre><br>
+                <pre>    &lt;script src=&quot;jquery.min.js&quot;&gt;&lt;/script&gt;</pre><br>
+                <pre>    &lt;script src=&quot;paperwork.js&quot;&gt;&lt;/script&gt;</pre><br>
+                &lt;/head&gt;<br>
+                &lt;body&gt;<br><br>
+                <pre>    &lt;!-- HTML for 'first-activity' --&gt;</pre><br>
+                <pre>    &lt;div activity=&quot;first-activity&quot;&gt;</pre><br>
+                <pre>        &lt;button id=&quot;add-button&quot;&gt;Add&lt;/button&gt;</pre><br>
+                <pre>    &lt;/div&gt;</pre><br>
+                <br>
+                <pre>    &lt;script&gt;</pre><br>
+                <pre>        //Create app</pre><br>
+                <pre>        var app = paper.app.create("My App", "blue");</pre><br>
+                <br>
+                <pre>        //Create 'home' group</pre><br>
+                <pre>        app.group("home", function(){</pre><br>
+                <pre>            this.activity_1 = "first-activity";</pre><br>
+                <pre>        });</pre><br>
+                <br>
+                <pre>        //Create 'first-activity' activity</pre><br>
+                <pre>        app.activity("first-activity", function(){</pre><br><br>
+                <pre>            this.onCreate = function(eActivity){<br></pre>
+                <pre>                eActivity.find("#add-button").click(function(){<br></pre>
+                <pre>                    //Handle click</pre><br>
+                <pre>                    app.goToActivity("second-activity", 2);<br></pre>
+                <pre>                });<br></pre>
+                <pre>            };</pre><br><br>
+                <pre>        });</pre><br>
+                <br>
+                <pre>        //Create 'second-activity' activity</pre><br>
+                <pre>        app.activity("second-activity", function(){</pre><br>
+                <br>
+                <pre>            this.title = "Second Activity";</pre><br>
+                <br>
+                <pre>        });</pre><br>
+                <br>
+                <pre>        //Initialize app</pre><br>
+                <pre>        app.init();</pre><br>
+                <pre>    &lt;/script&gt;</pre><br><br>
+                &lt;/body&gt;<br>
+                &lt;/html&gt;
+            </code>
+        </div>
+    </article>
+</template>
+<script>
+    app.activity("module-app", function(){
+        this.title = "App";
+
+        this.onCreate = function(eActivity, invokeArg){
+
+            eActivity.find("nav a").click(function(){
+                var target = $("[activity=module-app] [name=" + $(this).attr("link-name") + "]");
+                if(target.length > 0){
+                    target[0].scrollIntoView();
+                }
+            });
+        }
+
+    });
+</script>

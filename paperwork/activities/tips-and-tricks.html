@@ -1,0 +1,18 @@
+<template activity="tips-and-tricks">
+
+</template>
+<script>
+    app.activity("tips-and-tricks", function(){
+        this.title = "Tips and Tricks";
+
+        this.onCreate = function(){
+            setTimeout(function(){
+                app.setTheme("pink");
+            }, 20);
+        };
+
+        this.onDestroy = function(){
+            app.setTheme(app.color);
+        };
+    });
+</script>
