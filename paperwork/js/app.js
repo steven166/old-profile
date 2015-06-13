@@ -31,10 +31,10 @@ function hostReachable() {
 
 setInterval(function(){
     var isReachable = hostReachable();
-    if(isReachable !== isOffline){
-        isOffline = isReachable;
+    if(!isReachable !== isOffline){
+        isOffline = !isReachable;
         if(isOffline){
-            paper.snackbar("This site is always available, even when you are working offline");
+            paper.snackbar("This website is offline available");
         }else{
             paper.snackbar("Seems we're back online!");
         }
