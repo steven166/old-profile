@@ -75,13 +75,13 @@ console.log("SW startup");
 self.addEventListener('install', function(event) {
     console.log("SW installed");
     // Perform install steps
-    //event.waitUntil(
-    //    caches.open(CACHE_NAME)
-    //        .then(function(cache) {
-    //            console.log('Opened cache');
-    //            return cache.addAll(urlsToCache);
-    //        })
-    //);
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(function(cache) {
+                console.log('Opened cache');
+                return cache.addAll(urlsToCache);
+            })
+    );
 });
 
 self.addEventListener('activate', function(event) {
