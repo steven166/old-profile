@@ -9,5 +9,4 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-
 var app = paper.app.create("Paperwork", "blue-gray");

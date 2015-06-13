@@ -7,8 +7,4 @@ app.group("home", function(){
     this.activity_2_type = "large";
 });
 
-//app.group("general", function(){
-//
-//});
-
 app.init();
