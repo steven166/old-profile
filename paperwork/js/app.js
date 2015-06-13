@@ -10,7 +10,7 @@ if ('serviceWorker' in navigator) {
 }
 
 //Check for internet connection
-var isOffline = false;
+var isOnline = true;
 function hostReachable() {
 
     // Handle IE and more capable browsers
@@ -31,9 +31,9 @@ function hostReachable() {
 
 setInterval(function(){
     var isReachable = hostReachable();
-    if(!isReachable !== isOffline){
-        isOffline = !isReachable;
-        if(isOffline){
+    if(isReachable !== isOnline){
+        isOnline = isReachable;
+        if(!isOnline){
             paper.snackbar("This website is offline available");
         }else{
             paper.snackbar("Seems we're back online!");
