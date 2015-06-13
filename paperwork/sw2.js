@@ -1,17 +1,17 @@
 
 var CACHE_NAME = 'paperwork-api-cache-v1';
-//var urlsToCache = [
-//    '/',
-//    '/activities/',
-//    '/js/_app.js',
-//    '/js/_init.js',
-//    '/images/',
-//    '../../shared/images/icons/',
-//    '../../shared/css/icons/',
-//    '../../shared/css/paper-bundle.css',
-//    '../../shared/js/jquery.min.js',
-//    '../../shared/js/paper-bundle.js'
-//];
+var urlsToCache = [
+    '/',
+    '/activities/',
+    '/js/_app.js',
+    '/js/_init.js',
+    '/images/',
+    '../../shared/images/icons/',
+    '../../shared/css/icons/',
+    '../../shared/css/paper-bundle.css',
+    '../../shared/js/jquery.min.js',
+    '../../shared/js/paper-bundle.js'
+];
 
 //self.addEventListener('install', function(event) {
 //    // Perform install steps
