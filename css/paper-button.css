@@ -1,0 +1,82 @@
+.paper-button {
+    position: relative;
+    display: inline-block;
+    height: 38px;
+    padding: 8px 30px;
+    margin: 5px;
+    line-height: 22px;
+    cursor: pointer;
+    text-align: center;
+    text-transform: uppercase;
+    text-decoration: none;
+    outline: none !important;
+    overflow: hidden;
+    border: none;
+    border-radius: 3px;
+    background: none;
+    text-decoration: none;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+    transition-duration: 0.3s;
+    transition-property: all;
+}
+
+.paper-button span {
+    position: relative;
+    top: -1px;
+    transition: opacity 0.2s cubic-bezier(.4,0,.2,1);
+}
+
+.paper-button:hover{
+    text-decoration: none;
+}
+
+.paper-button i{
+    position: relative;
+    top: 6px;
+    font-size: 28px;
+    line-height: 10px;
+}
+
+.paper-button:active {
+    box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.4);
+}
+
+.paper-button.float{
+    position: absolute;
+    z-index: 10;
+    bottom: 10px;
+    right: 15px;
+    width: 64px;
+    height: 64px;
+    padding: 15px;
+    box-shadow: rgba(0, 0, 0, 0.227451) 0px 6px 10px 0px, rgba(0, 0, 0, 0.188235) 0px 10px 30px 0px;
+    border-radius: 100%;
+    font-size: 34px;
+}
+
+.paper-button.float:hover{
+    box-shadow: 0 10px 18px rgba(0,0,0,.22),0 14px 45px rgba(0,0,0,.25);
+}
+
+.paper-button.float:active{
+    box-shadow: 0 15px 20px rgba(0,0,0,.22),0 19px 60px rgba(0,0,0,.3);
+}
+
+.paper-button.float i{
+    font-size: inherit;
+    line-height: inherit;
+    top: 1px;
+}
+
+@media(min-width: 1080px){
+    .paper-button.float{
+        right: 30px;
+        bottom: 20px;
+    }
+}
+
+.paper-button.flat{
+    background-color: transparent !important;
+    color: black !important;
+    box-shadow: none;
+}

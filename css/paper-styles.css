@@ -1,0 +1,138 @@
+.theme-red .theme-color{background-color:#F44336;color:white;}
+.theme-pink .theme-color{background-color:#E91E63;color:white;}
+.theme-purple .theme-color{background-color:#9C27B0;color:white;}
+.theme-deep-purple .theme-color{background-color:#673AB7;color:white;}
+.theme-indigo .theme-color{background-color:#3F51B5;color:white;}
+.theme-blue .theme-color{background-color:#2196F3;color:white;}
+.theme-light-blue .theme-color{background-color:#03A9F4;color:white;}
+.theme-cyan .theme-color{background-color:#00BCD4;color:white;}
+.theme-teal .theme-color{background-color:#009688;color:white;}
+.theme-green .theme-color{background-color:#4CAF50;color:white;}
+.theme-light-green .theme-color{background-color:#8BC34A;color:white;}
+.theme-lime .theme-color{background-color:#CDDC39;color:black;}
+.theme-yellow .theme-color{background-color:#FFEB3B;color:black;}
+.theme-amber .theme-color{background-color:#FFC107;color:white;}
+.theme-orange .theme-color{background-color:#FF9800;color:white;}
+.theme-deep-orange .theme-color{background-color:#FF5722;color:white;}
+.theme-brown .theme-color{background-color:#795548;color:white;}
+.theme-gray .theme-color{background-color:#9E9E9E;color:white;}
+.theme-dark-gray .theme-color{background-color:#333333;color:white;}
+.theme-light-gray .theme-color{background-color:#CCCCCC;color:black;}
+.theme-blue-gray .theme-color{background-color:#607D8B;color:white;}
+.theme-black .theme-color{background-color:black;color:white;}
+.theme-white .theme-color{background-color:white;color:black;}
+.theme-red .theme-fg-color{color:#F44336;}
+.theme-pink .theme-fg-color{color:#E91E63;}
+.theme-purple .theme-fg-color{color:#9C27B0;}
+.theme-deep-purple .theme-fg-color{color:#673AB7;}
+.theme-indigo .theme-fg-color{color:#3F51B5;}
+.theme-blue .theme-fg-color{color:#2196F3;}
+.theme-light-blue .theme-fg-color{color:#03A9F4;}
+.theme-cyan .theme-fg-color{color:#00BCD4;}
+.theme-teal .theme-fg-color{color:#009688;}
+.theme-green .theme-fg-color{color:#4CAF50;}
+.theme-light-green .theme-fg-color{color:#8BC34A;}
+.theme-lime .theme-fg-color{color:#CDDC39;}
+.theme-yellow .theme-fg-color{color:#FFEB3B;}
+.theme-amber .theme-fg-color{color:#FFC107;}
+.theme-orange .theme-fg-color{color:#FF9800;}
+.theme-deep-orange .theme-fg-color{color:#FF5722;}
+.theme-brown .theme-fg-color{color:#795548;}
+.theme-gray .theme-fg-color{color:#9E9E9E;}
+.theme-dark-gray .theme-fg-color{color:#333333;}
+.theme-light-gray .theme-fg-color{color:#CCCCCC;}
+.theme-blue-gray .theme-fg-color{color:#607D8B;}
+.theme-black .theme-fg-color{color:black;}
+.theme-white .theme-fg-color{color:white;}
+.red{background-color:#F44336;color:white;}
+.pink{background-color:#E91E63;color:white;}
+.purple{background-color:#9C27B0;color:white;}
+.deep-purple{background-color:#673AB7;color:white;}
+.indigo{background-color:#3F51B5;color:white;}
+.blue{background-color:#2196F3;color:white;}
+.light-blue{background-color:#03A9F4;color:white;}
+.cyan{background-color:#00BCD4;color:white;}
+.teal{background-color:#009688;color:white;}
+.green{background-color:#4CAF50;color:white;}
+.light-green{background-color:#8BC34A;color:white;}
+.lime{background-color:#CDDC39;color:black;}
+.yellow{background-color:#FFEB3B;color:black;}
+.amber{background-color:#FFC107;color:white;}
+.orange{background-color:#FF9800;color:white;}
+.deep-orange{background-color:#FF5722;color:white;}
+.brown{background-color:#795548;color:white;}
+.gray{background-color:#9E9E9E;color:white;}
+.dark-gray{background-color:#333333;color:white;}
+.light-gray{background-color:#CCCCCC;color:black;}
+.blue-gray{background-color:#607D8B;color:white;}
+.black{background-color:black;color:white;}
+.white{background-color:white;color:black;}
+.fg-red{color:#F44336;}
+.fg-pink{color:#E91E63;}
+.fg-purple{color:#9C27B0;}
+.fg-deep-purple{color:#673AB7;}
+.fg-indigo{color:#3F51B5;}
+.fg-blue{color:#2196F3;}
+.fg-light-blue{color:#03A9F4;}
+.fg-cyan{color:#00BCD4;}
+.fg-teal{color:#009688;}
+.fg-green{color:#4CAF50;}
+.fg-light-green{color:#8BC34A;}
+.fg-lime{color:#CDDC39;}
+.fg-yellow{color:#FFEB3B;}
+.fg-amber{color:#FFC107;}
+.fg-orange{color:#FF9800;}
+.fg-deep-orange{color:#FF5722;}
+.fg-brown{color:#795548;}
+.fg-gray{color:#9E9E9E;}
+.fg-dark-gray{color:#333333;}
+.fg-light-gray{color:#CCCCCC;}
+.fg-blue-gray{color:#607D8B;}
+.fg-black{color:black;}
+.fg-white{color:white;}
+.theme-red .paper-loading svg circle{stroke:#F44336;}
+.theme-pink .paper-loading svg circle{stroke:#E91E63;}
+.theme-purple .paper-loading svg circle{stroke:#9C27B0;}
+.theme-deep-purple .paper-loading svg circle{stroke:#673AB7;}
+.theme-indigo .paper-loading svg circle{stroke:#3F51B5;}
+.theme-blue .paper-loading svg circle{stroke:#2196F3;}
+.theme-light-blue .paper-loading svg circle{stroke:#03A9F4;}
+.theme-cyan .paper-loading svg circle{stroke:#00BCD4;}
+.theme-teal .paper-loading svg circle{stroke:#009688;}
+.theme-green .paper-loading svg circle{stroke:#4CAF50;}
+.theme-light-green .paper-loading svg circle{stroke:#8BC34A;}
+.theme-lime .paper-loading svg circle{stroke:#CDDC39;}
+.theme-yellow .paper-loading svg circle{stroke:#FFEB3B;}
+.theme-amber .paper-loading svg circle{stroke:#FFC107;}
+.theme-orange .paper-loading svg circle{stroke:#FF9800;}
+.theme-deep-orange .paper-loading svg circle{stroke:#FF5722;}
+.theme-brown .paper-loading svg circle{stroke:#795548;}
+.theme-gray .paper-loading svg circle{stroke:#9E9E9E;}
+.theme-dark-gray .paper-loading svg circle{stroke:#333333;}
+.theme-light-gray .paper-loading svg circle{stroke:#CCCCCC;}
+.theme-blue-gray .paper-loading svg circle{stroke:#607D8B;}
+.theme-black .paper-loading svg circle{stroke:black;}
+.theme-white .paper-loading svg circle{stroke:white;}
+.paper-loading.red svg circle{stroke:#F44336;}
+.paper-loading.pink svg circle{stroke:#E91E63;}
+.paper-loading.purple svg circle{stroke:#9C27B0;}
+.paper-loading.deep-purple svg circle{stroke:#673AB7;}
+.paper-loading.indigo svg circle{stroke:#3F51B5;}
+.paper-loading.blue svg circle{stroke:#2196F3;}
+.paper-loading.light-blue svg circle{stroke:#03A9F4;}
+.paper-loading.cyan svg circle{stroke:#00BCD4;}
+.paper-loading.teal svg circle{stroke:#009688;}
+.paper-loading.green svg circle{stroke:#4CAF50;}
+.paper-loading.light-green svg circle{stroke:#8BC34A;}
+.paper-loading.lime svg circle{stroke:#CDDC39;}
+.paper-loading.yellow svg circle{stroke:#FFEB3B;}
+.paper-loading.amber svg circle{stroke:#FFC107;}
+.paper-loading.orange svg circle{stroke:#FF9800;}
+.paper-loading.deep-orange svg circle{stroke:#FF5722;}
+.paper-loading.brown svg circle{stroke:#795548;}
+.paper-loading.gray svg circle{stroke:#9E9E9E;}
+.paper-loading.dark-gray svg circle{stroke:#333333;}
+.paper-loading.light-gray svg circle{stroke:#CCCCCC;}
+.paper-loading.blue-gray svg circle{stroke:#607D8B;}
+.paper-loading.black svg circle{stroke:black;}
+.paper-loading.white svg circle{stroke:white;}

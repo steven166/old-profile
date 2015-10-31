@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+
+    <link rel="stylesheet" href="css/icons/google_icons.css"/>
+    <link rel="stylesheet" href="css/paper.css"/>
+    <link rel="stylesheet" href="css/paper-button.css"/>
+    <link rel="stylesheet" href="css/paper-wrippels.css"/>
+    <link rel="stylesheet" href="css/paper-input.css"/>
+    <link rel="stylesheet" href="css/paper-styles.css"/>
+    <link rel="stylesheet" href="css/paper-button-styles.css"/>
+    <link rel="stylesheet" href="css/styles.css"/>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/paper.js"></script>
+    <script src="js/paper-lang.js"></script>
+    <script src="js/paper-wrippels.js"></script>
+    <script src="js/paper-input.js"></script>
+    <script src="js/app.js"></script>
+
+    <title>Portfolio - Steven Hermans</title>
+</head>
+<body>
+<div id="container">
+    <div id="me">
+        <div id="portrait" class="shadow-1 hide"></div>
+        <div id="details" class="shadow-2 hide">
+            <h1 lang-key="my-name">Steven Hermans</h1>
+            <h2 lang-key="title">Software engineer</h2>
+            <table>
+                <tr>
+                    <th lang-key="country">Land</th>
+                    <td lang-key="netherlands">Netherlands</td>
+                </tr>
+                <tr>
+                    <th lang-key="age">Age</th>
+                    <td>19 <span lang-key="years">years</span></td>
+                </tr>
+            </table>
+            <ul id="subject-list">
+                <li class="paper-align medium wrippels selected fg-blue" id="my-projects">
+                    <div class="icon"><i class="mdi-image-filter-none"></i></div>
+                    <div class="title" lang-key="projects">Projects</div>
+                </li>
+                <li class="paper-align medium wrippels fg-blue" id="contact-me">
+                    <div class="icon"><i class="mdi-communication-email"></i></div>
+                    <div class="title" lang-key="contact">Contact</div>
+                </li>
+            </ul>
+            <div id="detail-bottom">
+                <button id="more-button" class="paper-button wrippels blue" lang-key="read-more">Read more</button>
+            </div>
+        </div>
+    </div>
+    <div id="content-frame">
+        <div id="showcase" class="hide">
+            <div class="item shadow-2 teal wrippels" id="paperwork">
+                <h1><span class="white fg-teal">P</span>aperwork</h1>
+                <h2>You do the paper, we do the work!</h2>
+                <h3>JavaScript framework for making fast and nice looking apps</h3>
+                <ul class="detail-list">
+                    <li>Material Design</li>
+                    <li>Single page application</li>
+                    <li>Based on activities</li>
+                    <li>Structured code</li>
+                </ul>
+                <div class="item-bottom">
+                    <a class="paper-button wrippels gray" href="https://github.com/steven166/PaperWork" target="_blank">Github</a>
+                    <a class="paper-button wrippels blue button-preview" href="paperwork/api.html" target="_blank">Docs</a>
+                    <a class="paper-button wrippels teal button-hide">Hide</a>
+                </div>
+            </div>
+            <div class="item shadow-2 dark-gray wrippels" id="moviewatcher">
+                <h1><span class="white fg-dark-gray">M</span>oviewatcher</h1>
+                <h2 lang-key="discover-movies">Discover your movie!</h2>
+                <h3>Web app based on the Paperwork framework and the Movie Database</h3>
+                <div class="screenshot">
+                    <img src="images/moviewatcher.png" class="shadow-2"/>
+                </div>
+                <div class="item-bottom">
+                    <a class="paper-button wrippels gray" href="https://github.com/steven166/MovieWatcher" target="_blank">Github</a>
+                    <a class="paper-button wrippels blue button-preview" href="moviewatcher" target="_blank">Perview</a>
+                    <a class="paper-button wrippels dark-gray button-hide">Hide</a>
+                </div>
+            </div>
+            <div class="item shadow-2 red wrippels" id="time100">
+                <h1><span class="white fg-red">T</span>ime100</h1>
+                <h2>Decade of transformation</h2>
+                <h3>Project with Time.com to show the 100 most influence people of the last decade on a webpage.</h3>
+                <div class="screenshot">
+                    <img src="images/time100.png" class="shadow-2"/>
+                </div>
+                <div class="item-bottom">
+                    <a class="paper-button wrippels blue button-preview" href="http://time.com/time-100-decade-change/" target="_blank">Preview</a>
+                    <a class="paper-button wrippels red button-hide">Hide</a>
+                </div>
+            </div>
+        </div>
+        <div id="contact" class="hide fade">
+            <form class="paper-form shadow-2" onsubmit="return false">
+                <h1 lang-key="contact">Neem contact op</h1>
+                <div class="paper-input paper-label">
+                    <input type="text" name="name" required/>
+                    <label lang-key="name">Naam</label>
+                    <div class="stat"></div>
+                    <div class="stat-active"></div>
+                </div>
+                <div class="paper-input paper-label">
+                    <input type="text" name="email" required/>
+                    <label lang-key="email">Email</label>
+                    <div class="stat"></div>
+                    <div class="stat-active"></div>
+                </div>
+                <div class="paper-input paper-label">
+                    <input type="text" name="subject" required/>
+                    <label lang-key="subject">Onderwerp</label>
+                    <div class="stat"></div>
+                    <div class="stat-active"></div>
+                </div>
+                <div class="paper-input paper-label">
+                    <textarea name="description" rows="5" required></textarea>
+                    <label lang-key="description">Description</label>
+                    <div class="stat"></div>
+                    <div class="stat-active"></div>
+                </div>
+                <div class="form-control">
+                    <button class="paper-button blue wrippels" type="submit" lang-key="send">Send</button>
+                    <div class="paper-loading small hide"></div>
+                    <span class="fg-red"></span>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
