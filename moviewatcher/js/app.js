@@ -1,8 +1,17 @@
 
+var downloadEnabled = false;
+
 var API_KEY = "76a4eeaa0b33a5169893adf856328a34";
 
+var keyName = "session.key";
+
+var protocol = "https://";
+if(location.protocol === "http:"){
+    protocol = "http://";
+}
+
 function getAPIConfig(){
-    var getter = $.get("http://api.themoviedb.org/3/configuration", {api_key: API_KEY});
+    var getter = $.get(protocol + "api.themoviedb.org/3/configuration", {api_key: API_KEY});
     getter.done(function(json){
         localStorage.setItem("api_config", JSON.stringify(json));
         API_CONFIG = json;
@@ -30,4 +39,8 @@ paper.app.errorHandlers.error = function(jqXHR, textStatus, errorThrown){
 paper.app.errorHandlers.connectionError = function(jqXHR, textStatus, errorThrown){
     paper.toast(paper.lang.get("error-connection"));
     return false;
+};
+
+paper.app.errorHandlers["401"] = function(jqXHR, textStatus, errorThrown){
+    app.overlay("login");
 };

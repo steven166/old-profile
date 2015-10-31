@@ -44,7 +44,7 @@ var paper = {
     /**
      * List of all modules
      */
-    modules: ["app", "checkbox", "radio", "switch", "header", "input", "lang", "list", "alert", "snackbar", "toast", "wrippels", "loading", "progress"],
+    modules: ["app", "checkbox", "radio", "switch", "header", "input", "lang", "list", "alert", "snackbar", "toast", "wrippels", "loading", "progress", "tabs", "slider"],
 
     /**
      * Get list of installed modules
@@ -225,12 +225,12 @@ var paper = {
                     if (parseInt(clrs[3]) == 0) {
                         return paper.wrippels.isLightBackground($(comp).parent());
                     } else {
-                        return (parseInt(clrs[0]) + parseInt(clrs[1]) + parseInt(clrs[2])) / 3 > 130;
+                        return (parseInt(clrs[0]) + parseInt(clrs[1]) + parseInt(clrs[2])) / 3 > 150;
                     }
                 } else {
                     bg = bg.substring(4, bg.length - 1);
                     var clrs = bg.split(",");
-                    return (parseInt(clrs[0]) + parseInt(clrs[1]) + parseInt(clrs[2])) / 3 > 130;
+                    return (parseInt(clrs[0]) + parseInt(clrs[1]) + parseInt(clrs[2])) / 3 > 150;
                 }
             } catch (e) {
                 return true;
@@ -266,12 +266,12 @@ var paper = {
         h += parseInt($(tthis).css("padding-bottom"));
 
         //if(!isLight || !isRound) {
-        var size = Math.sqrt(Math.pow(w, 2) + Math.pow(h, 2)) * 2;
+            var size = Math.sqrt(Math.pow(w, 2) + Math.pow(h, 2)) * 2;
 
-        //calc pos
-        var offset = $(tthis).offset();
-        var x = Math.round(event.pageX - offset.left) - size / 2;
-        var y = Math.round(event.pageY - offset.top) - size / 2;
+            //calc pos
+            var offset = $(tthis).offset();
+            var x = Math.round(event.pageX - offset.left) - size / 2;
+            var y = Math.round(event.pageY - offset.top) - size / 2;
         //}else{
         //    var size = (w < h ? w : h);
         //    var x = 0;
@@ -464,6 +464,7 @@ var paper = {
         render: function (header) {
             var eHeader = $("<div class='paper-header'></div>");
             eHeader.addClass(header.getColor());
+            eHeader.addClass(header.getSize());
             if(header.getTitle() !== null || (header.getIcon() !== null || header.getLeftAction() !== null)){
                 var leftAction = $("<div class='left-action'></div>").appendTo(eHeader);
                 var hasIcon = header.getPushLeft();
@@ -499,6 +500,13 @@ var paper = {
                 }
             }
             updateActionButtons(header, eHeader);
+
+            eHeader.append("<div class='middle-bar'></div>");
+            var bottomBar = $("<div class='bottom-bar'></div>");
+            bottomBar.appendTo(eHeader);
+            if(header.getTabs() !== null && typeof(paper.tabs) !== "undefined"){
+                paper.tabs.render(header.getTabs(), bottomBar);
+            }
 
             return eHeader;
         },
@@ -546,7 +554,7 @@ var paper = {
         update: function (header) {
             var element = header.getElement();
 
-            element.attr("class", "paper-header " + header.getColor());
+            element.attr("class", "paper-header " + header.getColor() + " " + header.getSize());
 
             var renderIcon = !(header.getLeftAction() === null && header.getSource() === null && header.getIcon() === null);
             var eLeftAction = element.find(".left-action");
@@ -609,7 +617,7 @@ var paper = {
                 if(header.getSource() !== null){
                     icon.find("i").css("background-image", "url(" + header.getSource() + ")");
                 }
-                if(header.getLeftAction() === null && header.getSource() === null){
+                if(header.getLeftAction() === null && header.getSource() === null && header.getIcon() === null){
                     icon.remove();
                 }
 
@@ -850,6 +858,8 @@ var paper = {
         this.src = null;
         this.pushLeft = false;
         this.wrippels = true;
+        this.tabs = null;
+        this.size = "small";
 
         if (typeof(options) !== "undefined") {
 
@@ -877,9 +887,34 @@ var paper = {
             if (typeof(options.wrippels) !== "undefined") {
                 this.setWrippels(options.wrippels);
             }
+            if (typeof(options.tabs) !== "undefined") {
+                this.setTabs(options.tabs);
+            }
+            if (typeof(options.size) !== "undefined") {
+                this.setSize(options.size);
+            }
 
         }
     }
+
+    Header.prototype.setSize = function(size){
+        if(size !== "small" && size !== "medium" && size !== "large"){
+            throw "Unknown size '" + size + "'";
+        }
+        this.size = size;
+    };
+
+    Header.prototype.getSize = function(){
+        return this.size;
+    };
+
+    Header.prototype.setTabs = function(tabs){
+        this.tabs = tabs;
+    };
+
+    Header.prototype.getTabs = function(){
+        return this.tabs;
+    };
 
     Header.prototype.setWrippels = function(wrippels){
         this.wrippels = wrippels;
@@ -1088,7 +1123,7 @@ var paper = {
     };
 
 })();
-(function(){
+(function () {
 
     //Check dependency
     if (typeof(paper) === "undefined") {
@@ -1103,14 +1138,14 @@ var paper = {
 
     var ajaxRegister = [];
 
-    var findEmptyKey = function(map, i){
-        if(typeof(i) === "undefined"){
+    var findEmptyKey = function (map, i) {
+        if (typeof(i) === "undefined") {
             i = 1;
         }
-        if(typeof(map[i]) === "undefined"){
+        if (typeof(map[i]) === "undefined") {
             return i;
-        }else{
-            return findEmptyKey(map, i+1);
+        } else {
+            return findEmptyKey(map, i + 1);
         }
     };
 
@@ -1120,6 +1155,8 @@ var paper = {
      */
     paper.app = {
 
+        instance: undefined,
+
         /**
          * Create new application
          * @param {string} title - Application title
@@ -1127,45 +1164,47 @@ var paper = {
          * @param {string} iconSrc - The source path to your icon
          * @returns {App}
          */
-        create: function(title, color, iconSrc){
-            return new App(title, color, iconSrc);
+        create: function (title, color, iconSrc) {
+            paper.app.instance = new App(title, color, iconSrc);
+            return paper.app.instance;
         },
 
-        post: function(url, data, success, dataType){
-            if(typeof(this.id) !== "undefined"){
+        post: function (url, data, success, dataType) {
+            if (typeof(this.id) !== "undefined") {
                 return this.ajax({url: url, data: data, success: success, dataType: dataType, type: "POST"});
-            }else{
+            } else {
                 return paper.app.ajax({url: url, data: data, success: success, dataType: dataType, type: "POST"});
             }
         },
 
-        get: function(url, data, success, dataType){
-            if(typeof(this.id) !== "undefined"){
+        get: function (url, data, success, dataType) {
+            if (typeof(this.id) !== "undefined") {
                 return this.ajax({url: url, data: data, success: success, dataType: dataType, type: "GET"});
-            }else{
+            } else {
                 return paper.app.ajax({url: url, data: data, success: success, dataType: dataType, type: "GET"});
             }
         },
 
-        ajax: function(url, settings){
+        ajax: function (url, settings) {
             var jqXHR = $.ajax(url, settings);
             var onFail = undefined;
             var onAlways = undefined;
+            var activity = this;
 
             var customJqXHR = {
                 done: jqXHR.done,
-                fail: function(func){
+                fail: function (func) {
                     onFail = func;
                 },
-                always: function(func){
+                always: function (func) {
                     onAlways = func;
                 },
                 then: jqXHR.then,
                 readyState: jqXHR.readyState,
                 status: jqXHR.status,
                 statusText: jqXHR.statusText,
-                responseXML : jqXHR.responseXML ,
-                responseText : jqXHR.responseText ,
+                responseXML: jqXHR.responseXML,
+                responseText: jqXHR.responseText,
                 setRequestHeader: jqXHR.setRequestHeader,
                 getAllResponseHeaders: jqXHR.getAllResponseHeaders,
                 getResponseHeader: jqXHR.getResponseHeader,
@@ -1174,56 +1213,63 @@ var paper = {
                 original: jqXHR
             };
 
-            if(typeof(this.ajaxRegister) !== "undefined"){
+            if (typeof(this.ajaxRegister) !== "undefined") {
                 var index = findEmptyKey(this.ajaxRegister);
                 var xhrStore = this.ajaxRegister;
                 this.ajaxRegister[index] = customJqXHR;
-            }else{
+            } else {
                 var index = findEmptyKey(ajaxRegister);
                 var xhrStore = ajaxRegister;
                 ajaxRegister[index] = customJqXHR;
             }
 
-            jqXHR.fail(function(jqXHR, textStatus, errorThrown){
+            jqXHR.fail(function (jqXHR, textStatus, errorThrown) {
                 var canceled = false;
-                if(typeof(onFail) !== "undefined"){
+
+                if (typeof(onFail) !== "undefined") {
                     canceled = onFail(jqXHR, textStatus, errorThrown) === false;
                 }
 
-                if(canceled){return;}
-                if(typeof(paper.app.errorHandlers[jqXHR.status]) !== "undefined"){
+                if (canceled) {
+                    return;
+                }
+                if (typeof(paper.app.errorHandlers[jqXHR.status]) !== "undefined") {
                     canceled = paper.app.errorHandlers[jqXHR.status](jqXHR, textStatus, errorThrown) === false;
                 }
 
-                if(canceled){return;}
+                if (canceled) {
+                    return;
+                }
                 if (jqXHR.status === 0) {
                     if (jqXHR.statusText === 'abort') {
-                        if(typeof(paper.app.errorHandlers.canceled) !== "undefined"){
+                        if (typeof(paper.app.errorHandlers.canceled) !== "undefined") {
                             canceled = paper.app.errorHandlers.canceled(jqXHR, textStatus, errorThrown) === false;
                         }
-                    }else{
-                        if(typeof(paper.app.errorHandlers.connectionError) !== "undefined") {
+                    } else {
+                        if (typeof(paper.app.errorHandlers.connectionError) !== "undefined") {
                             canceled = paper.app.errorHandlers.connectionError(jqXHR, textStatus, errorThrown) === false;
                         }
                     }
-                }else if(jqXHR.status >= 400 && jqXHR.status < 500){
-                    if(typeof(paper.app.errorHandlers.connectionError) !== "undefined") {
-                        canceled = paper.app.errorHandlers.connectionError(jqXHR, textStatus, errorThrown) === false;
+                } else if (jqXHR.status >= 400 && jqXHR.status < 500) {
+                    if (typeof(paper.app.errorHandlers.connectionError) !== "undefined") {
+                        canceled = paper.app.errorHandlers.error(jqXHR, textStatus, errorThrown) === false;
                     }
-                }else if(jqXHR.status >= 500){
-                    if(typeof(paper.app.errorHandlers.serverError) !== "undefined") {
+                } else if (jqXHR.status >= 500) {
+                    if (typeof(paper.app.errorHandlers.serverError) !== "undefined") {
                         canceled = paper.app.errorHandlers.serverError(jqXHR, textStatus, errorThrown) === false;
                     }
                 }
-                if(canceled){return;}
-                if(!(jqXHR.status === 0 && jqXHR.statusText === "abort")){
-                    if(typeof(paper.app.errorHandlers.error) !== "undefined") {
+                if (canceled) {
+                    return;
+                }
+                if (!(jqXHR.status === 0 && jqXHR.statusText === "abort")) {
+                    if (typeof(paper.app.errorHandlers.error) !== "undefined") {
                         paper.app.errorHandlers.error(jqXHR, textStatus, errorThrown) === false;
                     }
                 }
             });
-            jqXHR.always(function(data, textStatus, jqXHR){
-                if(typeof(onAlways) !== "undefined"){
+            jqXHR.always(function (data, textStatus, jqXHR) {
+                if (typeof(onAlways) !== "undefined") {
                     onAlways(data, textStatus, jqXHR);
                 }
                 delete xhrStore[index];
@@ -1251,13 +1297,13 @@ var paper = {
      * @param {string} iconSrc - The source path to your icon
      * @constructor
      */
-    function App(title, color, iconSrc){
-        if(title === null || title === "" || typeof(title) === "undefined" || title === false){
+    function App(title, color, iconSrc) {
+        if (title === null || title === "" || typeof(title) === "undefined" || title === false) {
             this.title = "@+app-name+@";
-        }else{
+        } else {
             this.title = title;
         }
-        if(typeof(paper.colors[color]) === "undefined"){
+        if (typeof(paper.colors[color]) === "undefined") {
             throw "Unknown color '" + color + "'";
         }
 
@@ -1276,24 +1322,24 @@ var paper = {
      * @param {html | selector} content - Structure of this activity
      * @param {object} activity - Activity object
      */
-    App.prototype.activity = function(id, content, activity){
+    App.prototype.activity = function (id, content, activity) {
         //Check arguments
-        if(typeof(activity) === "undefined"){
+        if (typeof(activity) === "undefined") {
             var clss = content;
             var pContent = "[activity='" + id + "']";
-        }else{
+        } else {
             var pContent = content;
             var clss = activity;
         }
-        if(typeof(clss) === "undefined"){
+        if (typeof(clss) === "undefined") {
             throw "missing argument";
         }
-        if(id === null || id === ""){
+        if (id === null || id === "") {
             throw "Activity id cannot be empty";
         }
         var existingActivity = this.activities[id];
-        if(typeof(existingActivity) !== "undefined") {
-            if(existingActivity._temp !== true) {
+        if (typeof(existingActivity) !== "undefined") {
+            if (existingActivity._temp !== true) {
                 throw "Activity '" + id + "' already exists";
             }
         }
@@ -1314,12 +1360,12 @@ var paper = {
      * @param {string} id - Unique name for this ActivityGroup
      * @param {{color: string, leftAction: null | 'menu' | 'back', icon: string, title: string, activity_1: Activity, activity_2: Activity, activity_3: Activity}} options - activityGroup settings
      */
-    App.prototype.group = function(id, options){
+    App.prototype.group = function (id, options) {
         //Check arguments
-        if(id === null || id === ""){
+        if (id === null || id === "") {
             throw "Group id cannot be empty";
         }
-        if(typeof(this.activityGroups[id]) !== "undefined"){
+        if (typeof(this.activityGroups[id]) !== "undefined") {
             throw "Group '" + id + "' already exists";
         }
 
@@ -1332,8 +1378,8 @@ var paper = {
      * Set theme color
      * @param color predefined color
      */
-    App.prototype.setTheme = function(color){
-        if(typeof(paper.colors[color]) === "undefined"){
+    App.prototype.setTheme = function (color) {
+        if (typeof(paper.colors[color]) === "undefined") {
             throw "'" + color + "' is not predefined";
         }
         this.element.attr("class", "material-app theme-" + color);
@@ -1351,7 +1397,7 @@ var paper = {
      * @param url
      * @returns {*}
      */
-    App.prototype.getUrlData = function(url){
+    App.prototype.getUrlData = function (url) {
         return getPath(url);
     };
 
@@ -1361,7 +1407,7 @@ var paper = {
      * @param {string} activityName
      * @param {string} arg
      */
-    App.prototype.overlay = function(activityName, arg){
+    App.prototype.overlay = function (activityName, arg) {
         var urlData = getPath();
         urlData.overlay = activityName;
         urlData.overlayArg = arg;
@@ -1371,19 +1417,19 @@ var paper = {
     /**
      * Go back
      */
-    App.prototype.back = function(){
+    App.prototype.back = function () {
         var urlData = getPath();
-        if(urlData.overlay !== null){
+        if (urlData.overlay !== null) {
             urlData.overlay = null;
             urlData.overlayArg = null;
-        }else if(urlData.acts.length == 2){
+        } else if (urlData.acts.length == 2) {
             urlData.acts.splice(1, 1);
-        }else if(urlData.acts.length == 1){
+        } else if (urlData.acts.length == 1) {
             urlData.acts.splice(0, 1);
-        }else{
+        } else {
             var group = this.activityGroups[urlData.group];
             var prevGroup = "home";
-            if(typeof(group.prevGroup) !== "undefined"){
+            if (typeof(group.prevGroup) !== "undefined") {
                 prevGroup = group.prevGroup;
             }
             urlData.group = prevGroup;
@@ -1396,11 +1442,11 @@ var paper = {
      * Go group back
      * Warning - Does NOT go back in the browser history
      */
-    App.prototype.groupBack = function(){
+    App.prototype.groupBack = function () {
         var urlData = getPath();
         var group = this.activityGroups[urlData.group];
         var prevGroup = "home"
-        if(typeof(group.prevGroup) !== "undefined"){
+        if (typeof(group.prevGroup) !== "undefined") {
             prevGroup = group.prevGroup;
         }
         urlData.group = prevGroup;
@@ -1413,7 +1459,7 @@ var paper = {
      * Navigate to home ActivityGroup
      * @param {boolean} pushState - History pushState
      */
-    App.prototype.goHome = function(pushState){
+    App.prototype.goHome = function (pushState) {
         this.goToGroup("home", null, pushState);
     };
 
@@ -1423,9 +1469,9 @@ var paper = {
      * @param {string} arg - invokeArg
      * @param {boolean} pushState - History pushState
      */
-    App.prototype.goToGroup = function(groupName, arg, pushState){
+    App.prototype.goToGroup = function (groupName, arg, pushState) {
         var url = getScriptName() + "#!" + groupName;
-        if(typeof(arg) !== "undefined" && arg !== null){
+        if (typeof(arg) !== "undefined" && arg !== null) {
             url += ":" + arg
         }
         this.goToUrl(url, pushState);
@@ -1438,19 +1484,19 @@ var paper = {
      * @param {string} arg - invokeArg
      * @param {boolean} pushState - History pushState
      */
-    App.prototype.goToActivity = function(activityName, index, arg, pushState){
+    App.prototype.goToActivity = function (activityName, index, arg, pushState) {
         var app = this;
         var urlData = getPath();
         urlData.overlay = null;
         urlData.overlayArg = null;
-        if(index == 2){
-            urlData.acts = [{activity:activityName, arg: arg}];
-        }else if(index == 3){
-            if(typeof(urlData.acts[0]) === "undefined"){
+        if (index == 2) {
+            urlData.acts = [{activity: activityName, arg: arg}];
+        } else if (index == 3) {
+            if (typeof(urlData.acts[0]) === "undefined") {
                 throw "Activity 2 is not set";
             }
-            urlData.acts[1] = {activity:activityName, arg: arg};
-        }else{
+            urlData.acts[1] = {activity: activityName, arg: arg};
+        } else {
             throw "Index must be 2 or 3";
         }
         app.goToUrl(generateLocation(urlData.group, urlData.arg, urlData.acts), pushState);
@@ -1461,16 +1507,16 @@ var paper = {
      * @param {string} path - URL
      * @param {boolean} pushState - History pushState
      */
-    App.prototype.goToUrl = function(path, pushState){
+    App.prototype.goToUrl = function (path, pushState) {
         //Check if the app is initialized
-        if(!this.isInit){
+        if (!this.isInit) {
             this.init();
         }
-        if(working){
+        if (working) {
             return;
         }
         working = true;
-        setTimeout(function(){
+        setTimeout(function () {
             working = false;
         }, 300);
         console.debug("goTo: " + path);
@@ -1485,52 +1531,52 @@ var paper = {
         //Set history
         var title = app.title;
 
-        if(typeof(group) !== "undefined") {
+        if (typeof(group) !== "undefined") {
             if (typeof(group.title) !== "undefined" && group.title !== null) {
                 title = group.title + " | " + title;
             }
         }
-        if(typeof(paper.lang) !== "undefined"){
+        if (typeof(paper.lang) !== "undefined") {
             title = paper.lang.replace(title);
         }
-        for(var i = 0; i < urlData.acts.length; i++){
+        for (var i = 0; i < urlData.acts.length; i++) {
             var activity = app.activities[urlData.acts[i]];
-            if(typeof(activity) !== "undefined"){
-                if(typeof(activity.title) !== "undefined" && activity.title !== null){
+            if (typeof(activity) !== "undefined") {
+                if (typeof(activity.title) !== "undefined" && activity.title !== null) {
                     title = activity.title + " - " + title;
                 }
             }
         }
         var url = generateLocation(urlData.group, urlData.arg, urlData.acts, urlData.overlay, urlData.overlayArg);
-        if(url !== location.href) {
+        if (url !== location.href) {
             if (pushState || typeof(pushState) === "undefined") {
                 var isBack = routingManager.goTo(url, title);
-                if(isBack === true){
+                if (isBack === true) {
                     return;
                 }
-            }else{
+            } else {
                 routingManager.replaceUrl(url, title);
             }
         }
         document.title = title;
-        $("body").trigger("navigate", [url, urlData]);
+        $(document).trigger("navigate", [url, urlData]);
 
-        console.debug("check group -> " + currentGroup[0] + ":"  + currentGroup[1] + " === " + urlData.group + ":" + urlData.arg);
-        if(currentGroup[0] === urlData.group && currentGroup[1] === urlData.arg){
+        console.debug("check group -> " + currentGroup[0] + ":" + currentGroup[1] + " === " + urlData.group + ":" + urlData.arg);
+        if (currentGroup[0] === urlData.group && currentGroup[1] === urlData.arg) {
             console.debug("same group");
             //Change Activities
-            if(urlData.acts.length == 0){
+            if (urlData.acts.length == 0) {
                 console.debug("clear activity 2 and 3");
                 //Remove Activity 2 and 3 if exists
                 closeActivity(app, 1);
                 closeActivity(app, 2);
             }
-            if(urlData.acts.length >= 1){
+            if (urlData.acts.length >= 1) {
                 console.debug("check if activity 2 exists");
                 //Check if Activity 2 should change
                 var activity_2 = getCurrentActivity(app, 1);
                 var shouldChange = activity_2 != null;
-                if(shouldChange) {
+                if (shouldChange) {
                     console.debug("yeas");
                     var arg = activity_2.element.attr("data-arg");
                     if (arg === null || typeof(arg) === "undefined") {
@@ -1541,27 +1587,27 @@ var paper = {
                         console.debug("yes");
                         //Remove activity
                         hideActivity(activity_2);
-                        setTimeout(function(){
+                        setTimeout(function () {
                             destroyActivity(activity_2);
                             setCurrentActivity(app, urlData.acts[0].activity, 2, urlData.acts[0].arg);
                         }, 200);
                     }
-                }else{
+                } else {
                     console.debug("no");
                     var closed = closeActivity(app, 1);
-                    if(closed){
-                        setTimeout(function(){
+                    if (closed) {
+                        setTimeout(function () {
                             setCurrentActivity(app, urlData.acts[0].activity, 2, urlData.acts[0].arg);
                         }, 200);
-                    }else{
+                    } else {
                         setCurrentActivity(app, urlData.acts[0].activity, 2, urlData.acts[0].arg);
                     }
                 }
             }
-            if(urlData.acts.length >= 2){
+            if (urlData.acts.length >= 2) {
                 console.debug("check if activity 3 exists");
                 var activity_3 = getCurrentActivity(app, 2);
-                if(activity_3 != null){
+                if (activity_3 != null) {
                     console.debug("yeas");
                     var arg = activity_3.element.attr("data-arg");
                     if (arg === null || typeof(arg) === "undefined") {
@@ -1572,39 +1618,39 @@ var paper = {
                         console.debug("yes");
                         //Remove activity
                         hideActivity(activity_3);
-                        setTimeout(function(){
+                        setTimeout(function () {
                             destroyActivity(activity_3);
                             setCurrentActivity(app, urlData.acts[1].activity, 3, urlData.acts[1].arg);
                         }, 200);
                     }
-                }else{
+                } else {
                     console.debug("no");
                     var closed = closeActivity(app, 2);
-                    if(closed){
-                        setTimeout(function(){
+                    if (closed) {
+                        setTimeout(function () {
                             setCurrentActivity(app, urlData.acts[1].activity, 3, urlData.acts[1].arg);
                         }, 200);
-                    }else{
+                    } else {
                         setCurrentActivity(app, urlData.acts[1].activity, 3, urlData.acts[1].arg);
                     }
                 }
-            }else{
+            } else {
                 //Remove Activity 3
                 closeActivity(app, 2);
             }
-        }else{
+        } else {
             console.debug("different group");
             //Change ActivityGroup
             setCurrentGroup(app, urlData.group, urlData.arg, urlData.acts);
         }
 
-        if(urlData.overlay !== null){
+        if (urlData.overlay !== null) {
             console.debug("Show overlay '" + urlData.overlay + "'");
-            if(overlayVisible){
-                setTimeout(function(){
+            if (overlayVisible) {
+                setTimeout(function () {
                     showOverlay(app, urlData.overlay, urlData.overlayArg);
                 }, 201);
-            }else{
+            } else {
                 showOverlay(app, urlData.overlay, urlData.overlayArg);
             }
         }
@@ -1616,23 +1662,23 @@ var paper = {
      * @param index
      * @return {boolean} - if activity closed true otherwise false
      */
-    function closeActivity(app, index){
+    function closeActivity(app, index) {
         var eActivities = app.element.children(".app-content").children(".paper-group").children(".paper-activity");
-        if(eActivities.length <= index){
+        if (eActivities.length <= index) {
             return false;
         }
         var eActivity = eActivities.eq(index);
         var name = eActivity.attr("activity");
         var activity = app.activities[name];
-        if(typeof(activity) === "undefined"){
+        if (typeof(activity) === "undefined") {
             eActivity.find(".activity-body").addClass("fade");
             eActivity.find(".paper-header").addClass("fade");
-            setTimeout(function(){
+            setTimeout(function () {
                 eActivity.remove();
             }, 200);
-        }else{
+        } else {
             hideActivity(activity);
-            setTimeout(function(){
+            setTimeout(function () {
                 destroyActivity(activity);
                 app.updateLayout();
             }, 200);
@@ -1646,20 +1692,20 @@ var paper = {
      * @param {string} activityName
      * @param {string} arg
      */
-    function showOverlay(app, activityName, arg){
+    function showOverlay(app, activityName, arg) {
         var activity = app.activities[activityName];
 
         var clr = app.color;
         var groupName = getCurrentGroup(app)[0];
         var group = app.activityGroups[groupName];
-        if(typeof(group.color) !== "undefined"){
+        if (typeof(group.color) !== "undefined") {
             clr = group.color;
         }
 
-        if(typeof(activity) === "undefined"){
+        if (typeof(activity) === "undefined") {
             console.error("Cannot find Activity '" + activityName + "'");
-        }else{
-            if(typeof(activity.color) !== "undefined"){
+        } else {
+            if (typeof(activity.color) !== "undefined") {
                 clr = activity.color;
             }
         }
@@ -1671,25 +1717,25 @@ var paper = {
         var leftAction = eActivity.children(".paper-header").children(".left-action");
         var icon = leftAction.children(".icon");
         leftAction.children(".title").addClass("push-left");
-        if(icon.length == 0){
+        if (icon.length == 0) {
             icon = $("<div class='icon wrippels'><i></i></div>").appendTo(leftAction);
         }
         icon.children("i").attr("class", "mdi-content-clear");
 
-        if(group.drawer === activityName){
+        if (group.drawer === activityName) {
             eOverlay.addClass("paper-drawer");
             eActivity.children(".paper-header").remove();
             eActivity.children(".activity-frame").children(".activity-body").children(".drawer-head").addClass("fade");
         }
 
         eOverlay.appendTo(app.element);
-        setTimeout(function(){
+        setTimeout(function () {
             eOverlay.removeClass("fade");
-            if(typeof(activity) === "undefined") {
+            if (typeof(activity) === "undefined") {
                 eActivity.children().removeClass("fade").children().removeClass("fade");
-            }else{
-                if(group.drawer === activityName){
-                    setTimeout(function(){
+            } else {
+                if (group.drawer === activityName) {
+                    setTimeout(function () {
                         eActivity.children(".activity-frame").children(".activity-body").children(".drawer-head").removeClass("fade");
                     }, 200);
                 }
@@ -1702,18 +1748,18 @@ var paper = {
      * Hide all visible overlays
      * @param {App} app
      */
-    function hideOverlay (app) {
+    function hideOverlay(app) {
         var eOverlay = app.element.children(".paper-overlay");
         eOverlay.addClass("fade");
-        setTimeout(function(){
+        setTimeout(function () {
             eOverlay.remove();
         }, 200);
         var eActivity = eOverlay.children(".paper-activity");
         if (eActivity.length > 0) {
             var activityId = eActivity.attr("activity");
-            if(activityId !== null && typeof(activityId) !== "undefined") {
+            if (activityId !== null && typeof(activityId) !== "undefined") {
                 var activity = app.activities[activityId];
-                if(typeof(activity) !== "undefined") {
+                if (typeof(activity) !== "undefined") {
                     hideActivity(activity);
                     activity.element.children(".paper-header").removeClass("fade");
                     setTimeout(function () {
@@ -1731,43 +1777,43 @@ var paper = {
      * @param {int} index - 2 or 3
      * @param {string} arg
      */
-    function setCurrentActivity(app, activityName, index, arg){
+    function setCurrentActivity(app, activityName, index, arg) {
         var eGroup = app.element.children(".app-content").children(".paper-group");
         var group = app.activityGroups[getCurrentGroup(app)[0]];
         var activity = app.activities[activityName];
 
         var color = app.color;
-        if(typeof(group.color) !== "undefined"){
+        if (typeof(group.color) !== "undefined") {
             color = group.color;
         }
 
         var pos = "normal";
-        if(index == 2 && typeof(group.activity_2_type) !== "undefined"){
+        if (index == 2 && typeof(group.activity_2_type) !== "undefined") {
             pos = group.activity_2_type;
-        }else if(index == 3 && typeof(group.activity_3_type) !== "undefined"){
+        } else if (index == 3 && typeof(group.activity_3_type) !== "undefined") {
             pos = group.activity_3_type;
         }
 
-        if(typeof(activity) === "undefined"){
+        if (typeof(activity) === "undefined") {
             console.error("Cannot find Activity '" + activityName + "'");
             var eActivity = createActivity(app, activityName, arg, color);
             eActivity.addClass("pos-" + pos);
             eActivity.appendTo(eGroup);
 
-            setTimeout(function(){
+            setTimeout(function () {
                 eActivity.children().removeClass("fade").children().removeClass("fade");
             }, 20);
             app.updateLayout();
-        }else{
+        } else {
             var eActivity = createActivity(app, activityName, arg, color);
             eActivity.addClass("pos-" + pos);
             eActivity.appendTo(eGroup);
-            if(typeof(paper.wrippels) !== "undefined"){
+            if (typeof(paper.wrippels) !== "undefined") {
                 var isLight = paper.wrippels.isLightBackground(app.element.children(".app-header"));
                 eGroup.children(".paper-activity").attr("bg", (isLight ? "light" : "dark"));
             }
 
-            setTimeout(function(){
+            setTimeout(function () {
                 showActivity(activity);
             }, 20);
             app.updateLayout();
@@ -1781,9 +1827,9 @@ var paper = {
      * @param {int} index
      * @returns {Activity}
      */
-    function getCurrentActivity (app, index){
+    function getCurrentActivity(app, index) {
         var eActivities = app.element.children(".app-content").children(".paper-group").children(".paper-activity");
-        if(eActivities.length <= index){
+        if (eActivities.length <= index) {
             return null;
         }
         var eActivity = eActivities.eq(index);
@@ -1795,14 +1841,14 @@ var paper = {
      * @param {App} app
      * @returns {[groupName, arg]}
      */
-    function getCurrentGroup(app){
+    function getCurrentGroup(app) {
         var appContent = app.element.children(".app-content");
-        if(appContent.children(".paper-group").length == 0){
+        if (appContent.children(".paper-group").length == 0) {
             return [null, null];
-        }else{
+        } else {
             var groupName = appContent.children(".paper-group").attr("group");
             var arg = appContent.children(".paper-group").attr("data-arg");
-            if(arg === "" || arg === null || typeof(arg) === "undefined"){
+            if (arg === "" || arg === null || typeof(arg) === "undefined") {
                 arg = null;
             }
             return [groupName, arg];
@@ -1816,16 +1862,16 @@ var paper = {
      * @param {string} arg - argument
      * @param {[{activity: Activity, arg: string}]} acts - Activities
      */
-    function setCurrentGroup(app, groupName, arg, acts){
+    function setCurrentGroup(app, groupName, arg, acts) {
         var appContent = app.element.children(".app-content");
 
         //Check if old group exists
-        if(appContent.children(".paper-group").length > 0){
-            destroyActivityGroup(app, function(){
+        if (appContent.children(".paper-group").length > 0) {
+            destroyActivityGroup(app, function () {
                 createGroup(app, groupName, arg, acts);
                 app.updateLayout();
             });
-        }else{
+        } else {
             createGroup(app, groupName, arg, acts);
             app.updateLayout();
         }
@@ -1836,21 +1882,21 @@ var paper = {
      * @param {App} app
      * @param {Function} callBack - called when destroyed
      */
-    function destroyActivityGroup(app, callBack){
+    function destroyActivityGroup(app, callBack) {
         var eGroup = app.element.children(".app-content").children(".paper-group");
         eGroup.addClass("fade");
-        var eActivities = eGroup.children(".paper-activity").each(function(){
+        var eActivities = eGroup.children(".paper-activity").each(function () {
             var activityId = $(this).attr("activity");
             var activity = app.activities[activityId];
-            if(typeof(activity) !== "undefined") {
+            if (typeof(activity) !== "undefined") {
                 hideActivity(activity);
                 destroyActivity(activity);
             }
         });
 
-        setTimeout(function(){
+        setTimeout(function () {
             eGroup.remove();
-            if(typeof(callBack) !== "undefined"){
+            if (typeof(callBack) !== "undefined") {
                 callBack();
             }
         }, 200);
@@ -1863,7 +1909,7 @@ var paper = {
      * @param {string} arg - argument
      * @param {[{activity: Activity, arg: string}]} acts - Activities
      */
-    function createGroup(app, groupName, arg, acts){
+    function createGroup(app, groupName, arg, acts) {
         var appContent = app.element.children(".app-content");
         var appHeader = app.element.children(".paper-header");
         var color = app.color;
@@ -1874,7 +1920,7 @@ var paper = {
         if (typeof(arg) !== "undefined" && arg !== null) {
             eGroup.attr("data-arg", arg);
         }
-        if(typeof(group) === "undefined"){
+        if (typeof(group) === "undefined") {
             console.error("Cannot find ActivityGroup '" + groupName + "'");
             //Create undefined activity
             var e1 = createActivity(app, undefined, arg, color).appendTo(eGroup);
@@ -1884,12 +1930,12 @@ var paper = {
 
             //Add to DOM
             eGroup.appendTo(appContent);
-            setTimeout(function(){
+            setTimeout(function () {
                 app.updateLayout();
                 eGroup.removeClass("fade");
             }, 20);
-        }else {
-            if(typeof(group.color) !== "undefined"){
+        } else {
+            if (typeof(group.color) !== "undefined") {
                 color = group.color;
             }
 
@@ -1917,15 +1963,15 @@ var paper = {
             //Update header
 
             var leftAction = appHeader.children(".left-action");
-            if(group.leftAction === "menu"){
+            if (group.leftAction === "menu") {
                 app.header.setLeftAction(group.leftAction);
-            }else if(group.leftAction === "back"){
+            } else if (group.leftAction === "back") {
                 app.header.setLeftAction(group.leftAction);
-            }else{
+            } else {
                 app.header.setLeftAction(null);
-                if(typeof(group.icon) !== "undefined" && group.icon !== null){
+                if (typeof(group.icon) !== "undefined" && group.icon !== null) {
                     app.header.setIcon(group.icon);
-                }else{
+                } else {
                     app.header.setIcon(app.icon);
                 }
             }
@@ -1934,11 +1980,11 @@ var paper = {
             //Add to DOM
             eGroup.appendTo(appContent);
             app.setTheme(color);
-            setTimeout(function(){
+            setTimeout(function () {
                 app.updateLayout();
                 eGroup.removeClass("fade");
                 showActivity(app.activities[group.activity_1]);
-                for(var i = 0; i < acts.length; i++){
+                for (var i = 0; i < acts.length; i++) {
                     showActivity(app.activities[acts[i].activity]);
                 }
             }, 20);
@@ -1955,13 +2001,13 @@ var paper = {
      * @param {string} title - Activity title
      * @returns {jQuery}
      */
-    function createActivity(app, activityName, invokeArg, color){
+    function createActivity(app, activityName, invokeArg, color) {
         console.debug("Create Activity: " + activityName);
         var activity = app.activities[activityName];
-        if(typeof(activity) !== "undefined") {
+        if (typeof(activity) !== "undefined") {
             return buildActivity(app, activity, invokeArg, color)
-        }else{
-            var emptyActivity = new function(){
+        } else {
+            var emptyActivity = new function () {
 
                 var activity = this;
                 this.content = $("<div></div>");
@@ -1970,19 +2016,19 @@ var paper = {
                 this.ajax = paper.app.ajax;
                 this._temp = true;
 
-                this.onCreate = function(eActivity, invokeArg){
+                this.onCreate = function (eActivity, invokeArg) {
 
-                    activity.get(activity.id).done(function(data){
+                    activity.get(activity.id).done(function (data) {
                         $("body").append(data);
-                        setTimeout(function(){
+                        setTimeout(function () {
                             var newProp = app.activities[activity.id];
-                            if(typeof(newProp) !== "undefined"){
+                            if (typeof(newProp) !== "undefined") {
                                 var newActivity = callActivity(newProp);
                                 initActivity(newActivity);
                                 activity.onCreate = undefined;
                                 activity._temp = undefined;
                                 var loadedFunc = activity.loaded;
-                                for(var key in newActivity){
+                                for (var key in newActivity) {
                                     activity[key] = newActivity[key];
                                 }
                                 activity.loaded = loadedFunc;
@@ -1992,18 +2038,18 @@ var paper = {
                                 var eActivityNew = buildActivity(app, activity, invokeArg, color);
                                 $("[activity='" + activity.id + "'] .paper-header").html(eActivityNew.children(".paper-header").html());
                                 $("[activity='" + activity.id + "'] style").remove();
-                                if(eActivityNew.children("style").length > 0){
+                                if (eActivityNew.children("style").length > 0) {
                                     $("[activity=" + activity.id + "]").prepend(eActivityNew.children("style"));
                                 }
                                 eActivity.html(eActivityNew.children(".paper-activity").html());
                                 activity.loaded();
-                            }else{
+                            } else {
                                 console.error("Initialize " + activity.id + ": Failed to register");
                                 $("<div class='activity-empty'>" + paper.app.errorHandlers.notfound + "</div>").appendTo(eActivity);
                                 activity.loaded();
                             }
                         }, 20);
-                    }).fail(function(){
+                    }).fail(function () {
                         console.error("Cannot find activity: " + activity.id);
                         $("<div class='activity-empty'>" + paper.app.errorHandlers.notfound + "</div>").appendTo(eActivity);
                         activity.loaded();
@@ -2026,9 +2072,10 @@ var paper = {
      * @param {string} title - Activity title
      * @returns {*|jQuery|HTMLElement}
      */
-    function buildActivity(app, activity, invokeArg, color){
+    function buildActivity(app, activity, invokeArg, color) {
         //Reset settings
-        activity.loaded = function () {};
+        activity.loaded = function () {
+        };
         activity.isLoaded = false;
 
         //Create jQuery object
@@ -2055,49 +2102,112 @@ var paper = {
         content.attr("id", "body-" + activity.id);
         content.removeAttr("activity");
 
-        //Call Activity.onCreate
-        if (typeof(activity.onCreate) !== "undefined") {
-            var succeed = activity.onCreate(content, activityArg);
-            if (succeed === false) {
-                //Activity is still loading
-                //Add loaded callback to continue initializing the activity when it is loaded
-                activity.loaded = function () {
-                    activity.isLoaded = true;
-                    if (activity.visible) {
-                        // Hide load rotator and show content
-                        // (Only when the activity is visible, otherwise it will be called on the onVisible event)
-                        activityFrame.addClass("fade");
-                        setTimeout(function () {
-                            activityFrame.children(".paper-loading").remove();
-                            paper.initModules(content);
-                            content.appendTo(activityFrame);
-                            if(typeof(paper.lang) !== "undefined"){
-                                paper.lang.updateLanguage(activity.element);
-                            }
-                            setTimeout(function () {
-                                content.removeClass("fade");
-                                activityFrame.removeClass("fade");
-                            }, 20);
-                        }, 200);
+        //Add error handling
+        if (typeof(activity.onError) === "undefined") {
+            activity.onError = function (error, retryButton) {
+                if(typeof(error) === "undefined") {
+                    if (typeof(paper.lang) !== "undefined") {
+                        error = paper.lang.get("error");
+                    }else{
+                        var error = "Something went wrong";
                     }
-                };
-                //Add load rotator when the activity is still loading
-                paper.loading.create().addClass("center").appendTo(activityFrame);
+                }else if (typeof(paper.lang) !== "undefined") {
+                    error = paper.lang.get(error);
+                }
+                showActivity(activity);
+
+                var timeout = 0;
+                var activityFrame = activity.element.find(".activity-frame");
+                if (!activityFrame.hasClass("fade")) {
+                    activityFrame.addClass("fade");
+                    timeout = 200;
+                }
+                setTimeout(function () {
+                    activityFrame.children().remove();
+                    var content = $("<div class='activity-body'></div>").appendTo(activityFrame);
+                    var errorPanel = $("<div class='paper-error-panel'></div>").appendTo(content);
+                    $("<i class='fg-red mdi-navigation-close'></i>").appendTo(errorPanel);
+                    $("<span></span>").text(error).appendTo(errorPanel);
+                    if (retryButton === true) {
+                        var retryMsg = "Retry";
+                        if (typeof(paper.lang) !== "undefined") {
+                            errorMsg = paper.lang.get("retry");
+                        }
+                        var button = $("<button class='paper-button red wrippels'></button>").text(retryMsg).appendTo(errorPanel);
+                        button.click(function(){
+                            activityFrame.addClass("fade");
+                            setTimeout(function(){
+                                var parent = activityFrame.parent();
+                                activityFrame.remove();
+                                var element = buildActivity(app, activity, invokeArg, color);
+                                activityFrame = element.find(".activity-frame");
+                                activityFrame.addClass("fade");
+                                activityFrame.appendTo(parent);
+                                activity.element = parent;
+                                activity.visible = false;
+                                showActivity(activity);
+                            }, 200);
+                        });
+                    }
+                    activityFrame.removeClass("fade");
+                }, timeout);
+            };
+        }
+        //Call Activity.onCreate
+        try {
+            if (typeof(activity.onCreate) !== "undefined") {
+                var succeed = activity.onCreate(content, activityArg);
+                if (succeed === false) {
+                    //Activity is still loading
+                    //Add loaded callback to continue initializing the activity when it is loaded
+                    activity.loaded = function () {
+                        activity.isLoaded = true;
+                        if (activity.visible) {
+                            // Hide load rotator and show content
+                            // (Only when the activity is visible, otherwise it will be called on the onVisible event)
+                            activityFrame.addClass("fade");
+                            setTimeout(function () {
+                                activityFrame.children(".paper-loading").remove();
+                                paper.initModules(content);
+                                content.appendTo(activityFrame);
+                                if (typeof(paper.lang) !== "undefined") {
+                                    paper.lang.updateLanguage(activity.element);
+                                }
+                                setTimeout(function () {
+                                    content.removeClass("fade");
+                                    activityFrame.removeClass("fade");
+                                }, 20);
+                            }, 200);
+                        }
+                    };
+                    //Add load rotator when the activity is still loading
+                    paper.loading.create().addClass("center").appendTo(activityFrame);
+                } else {
+                    //Append content to frame
+                    activity.isLoaded = true;
+                    paper.initModules(content);
+                    content.appendTo(activityFrame);
+                }
             } else {
                 //Append content to frame
                 activity.isLoaded = true;
                 paper.initModules(content);
                 content.appendTo(activityFrame);
             }
-        } else {
-            //Append content to frame
-            activity.isLoaded = true;
-            paper.initModules(content);
-            content.appendTo(activityFrame);
+        } catch (e) {
+            console.error(e);
+            if (typeof(activity.onError) !== "undefined") {
+                activity.onError(undefined, true);
+            }
         }
 
         //Create header
         var hOptions = {color: color, title: activity.title, src: activity.src, pushLeft: activity.pushLeft};
+        if (typeof(activity.hOptions) !== "undefined") {
+            for (var key in activity.hOptions) {
+                hOptions[key] = activity.hOptions[key];
+            }
+        }
         if (typeof(activity.actions) !== "undefined") {
             hOptions.actions = activity.actions;
         }
@@ -2110,7 +2220,7 @@ var paper = {
 
         //Move <style> from activity-body to activity root
         var styles = content.children("style");
-        if(styles.length > 0) {
+        if (styles.length > 0) {
             styles.prependTo(eActivity);
         }
 
@@ -2121,12 +2231,12 @@ var paper = {
      * Show Activity (triggers loaded() )
      * @param {Activity} activity - Activity
      */
-    function showActivity(activity){
-        if(activity.visible){
+    function showActivity(activity) {
+        if (activity.visible) {
             return;
         }
         console.debug("Show Activity: " + activity.id);
-        if(typeof(paper.lang) !== "undefined"){
+        if (typeof(paper.lang) !== "undefined") {
             paper.lang.updateLanguage($("[activity='" + activity.id + "']"));
         }
         activity.element.children(".activity-frame").removeClass("fade").children(".activity-body").removeClass("fade");
@@ -2144,17 +2254,17 @@ var paper = {
      * Hide Activity
      * @param {Activity} activity - Activity
      */
-    function hideActivity(activity){
-        if(!activity.visible){
+    function hideActivity(activity) {
+        if (!activity.visible) {
             return;
         }
         console.debug("Hide Activity: " + activity.id);
-        if(typeof(activity.element) !== "undefined") {
+        if (typeof(activity.element) !== "undefined") {
             activity.element.children(".activity-frame").children(".activity-body").addClass("fade");
             activity.element.children(".paper-header").addClass("fade");
         }
         activity.visible = false;
-        if(typeof(activity.onInvisible) !== "undefined"){
+        if (typeof(activity.onInvisible) !== "undefined") {
             activity.onInvisible();
         }
     }
@@ -2163,20 +2273,20 @@ var paper = {
      * Destroy Activity (does not update url)
      * @param {Activity} activity - Activity
      */
-    function destroyActivity(activity){
+    function destroyActivity(activity) {
         console.debug("Destory Activity: " + activity.id);
-        if(typeof(activity.onDestroy) !== "undefined"){
+        if (typeof(activity.onDestroy) !== "undefined") {
             activity.onDestroy();
         }
-        if(typeof(activity.header) !== "undefined"){
+        if (typeof(activity.header) !== "undefined") {
             activity.header.detach();
         }
-        if(typeof(activity.element) !== "undefined") {
+        if (typeof(activity.element) !== "undefined") {
             activity.element.remove();
             activity.element = undefined;
         }
-        if(typeof(activity.ajaxRegister) !== "undefined"){
-            for(var key in activity.ajaxRegister){
+        if (typeof(activity.ajaxRegister) !== "undefined") {
+            for (var key in activity.ajaxRegister) {
                 var customXHR = activity.ajaxRegister[key];
                 customXHR.abort();
             }
@@ -2184,7 +2294,7 @@ var paper = {
         }
     }
 
-    function callActivity(prop){
+    function callActivity(prop) {
         var object = new prop["class"]();
 
         object.content = prop.content;
@@ -2199,12 +2309,12 @@ var paper = {
         return object;
     }
 
-    function initActivity(activity, importedHtml){
+    function initActivity(activity, importedHtml) {
         var content = $(activity.content);
-        if(content.length == 0){
+        if (content.length == 0) {
             //Not found in DOM -> Search imports
             var exists = false;
-            if(typeof(importedHtml) !== "undefined") {
+            if (typeof(importedHtml) !== "undefined") {
                 for (var i = 0; i < importedHtml.length; i++) {
                     var template = importedHtml[i];
                     if (template.attr("activity") === activity.id) {
@@ -2220,11 +2330,11 @@ var paper = {
                 }
             }
 
-            if(!exists) {
+            if (!exists) {
                 //Create new element
                 content = $("<div></div>");
             }
-        }else{
+        } else {
             content.remove();
         }
         activity.content = content;
@@ -2234,8 +2344,8 @@ var paper = {
     /**
      * Initialze application
      */
-    App.prototype.init = function(){
-        if(this.isInit){
+    App.prototype.init = function () {
+        if (this.isInit) {
             return;
         }
         console.info("init app");
@@ -2244,16 +2354,16 @@ var paper = {
             // Do it manually
             $.holdReady(true);
             var importsTodo = 0;
-            $("link[rel='import']").each(function(){
+            $("link[rel='import']").each(function () {
                 importsTodo++;
                 var url = $(this).attr("href");
                 var getter = $.get(url);
-                getter.done(function(data){
+                getter.done(function (data) {
                     $("body").append(data);
                 });
-                getter.always(function(){
+                getter.always(function () {
                     importsTodo--;
-                    if(importsTodo == 0){
+                    if (importsTodo == 0) {
                         $.holdReady(false);
                     }
                 });
@@ -2263,7 +2373,7 @@ var paper = {
         this.isInit = true;
         var app = this;
         appTitle = app.title;
-        if(typeof(paper.lang) !== "undefined"){
+        if (typeof(paper.lang) !== "undefined") {
             appTitle = paper.lang.replace(appTitle);
         }
         $("head").append("<meta name='theme-color' content='" + paper.colors[app.color] + "'>");
@@ -2279,10 +2389,10 @@ var paper = {
 
         this.element = materialApp;
 
-        var showApp = function(){
+        var showApp = function () {
             // Call activities
             console.info("init activities");
-            for(var key in app.activities){
+            for (var key in app.activities) {
                 var prop = app.activities[key];
                 var object = callActivity(prop);
                 app.activities[key] = object;
@@ -2290,8 +2400,8 @@ var paper = {
 
             //Get content from imports
             var importedHtml = [];
-            $("link[rel='import']").each(function(){
-                if(this.import !== null && typeof(this.import) !== "undefined") {
+            $("link[rel='import']").each(function () {
+                if (this.import !== null && typeof(this.import) !== "undefined") {
                     var template = $(this.import.querySelector("template"));
                     if (template.length > 0) {
                         importedHtml.push(template);
@@ -2301,15 +2411,15 @@ var paper = {
             });
 
             //Init activities
-            for(var key in app.activities){
+            for (var key in app.activities) {
                 initActivity(app.activities[key], importedHtml);
             }
 
             //Init groups
-            for(var key in app.activityGroups){
+            for (var key in app.activityGroups) {
                 var object = new app.activityGroups[key]();
 
-                if(typeof(object.activity_1) === "undefined"){
+                if (typeof(object.activity_1) === "undefined") {
                     throw "'activity_1' must be declared";
                 }
                 object.activity_1 = encodeURI(object.activity_1);
@@ -2319,20 +2429,20 @@ var paper = {
 
             //Add app to DOM
             materialApp.appendTo("body");
-            setTimeout(function(){
+            setTimeout(function () {
                 materialApp.removeClass("fade");
                 routingManager.update();
                 installAppListeners(app);
                 app.goToUrl(location.href, false);
 
-                if(typeof(paper.wrippels) !== "undefined"){
+                if (typeof(paper.wrippels) !== "undefined") {
                     var lightBackground = paper.wrippels.isLightBackground(appHeader);
                     header.getElement().attr("bg", (lightBackground ? "light" : "dark"));
                 }
             }, 20);
         };
 
-        $("body").ready(function(){
+        $("body").ready(function () {
             showApp();
         });
     };
@@ -2341,36 +2451,36 @@ var paper = {
      * Install app listeners
      * @param {App} app
      */
-    function installAppListeners(app){
+    function installAppListeners(app) {
         //When window resizes
-        $(window).resize(function(){
+        $(window).resize(function () {
             app.updateLayout();
         });
         //When navigate (eg. forward and back)
-        $(window).bind("popstate", function(event){
+        $(window).bind("popstate", function (event) {
             app.goToUrl(location.href, false);
         });
 
-        $("body").on("click", ".material-app > .paper-overlay > *", function(){
+        $("body").on("click", ".material-app > .paper-overlay > *", function () {
             return false;
         });
         //Close overlay when click on close button, or the overlay
-        $("body").on("click", ".material-app > .paper-overlay, .material-app > .paper-overlay .paper-header .left-action .icon", function(){
-            if($(this).hasClass("paper-overlay") || $(this).hasClass("icon")){
+        $("body").on("click", ".material-app > .paper-overlay, .material-app > .paper-overlay .paper-header .left-action .icon", function () {
+            if ($(this).hasClass("paper-overlay") || $(this).hasClass("icon")) {
                 app.back();
             }
         });
         //Fire activity.onVisible and activity.onInvisible when tab becomes invisible
-        document.addEventListener("visibilitychange", function(){
+        document.addEventListener("visibilitychange", function () {
             for (var i = 0; i <= 3; i++) {
                 var activity = getCurrentActivity(app, i);
-                if(activity != null){
-                    if(document.hidden && activity.visible){
-                        if(typeof(activity.onInvisible) !== "undefined"){
+                if (activity != null) {
+                    if (document.hidden && activity.visible) {
+                        if (typeof(activity.onInvisible) !== "undefined") {
                             activity.onInvisible();
                         }
-                    }else if(!document.hidden && activity.visible){
-                        if(typeof(activity.onVisible) !== "undefined"){
+                    } else if (!document.hidden && activity.visible) {
+                        if (typeof(activity.onVisible) !== "undefined") {
                             activity.onVisible();
                         }
                     }
@@ -2379,41 +2489,41 @@ var paper = {
             }
         }, false);
         //Click event on icon button (top-left icon)
-        $("body").on("click", ".material-app > .paper-header .left-action .icon", function(){
+        $("body").on("click", ".material-app > .paper-header .left-action .icon", function () {
             var groupData = getCurrentGroup(app);
             var groupName = groupData[0];
             var groupArg = groupData[1];
             var group = app.activityGroups[groupName];
 
-            if($(this).hasClass("action-menu")){
+            if ($(this).hasClass("action-menu")) {
                 //open drawer
-                if(typeof(group) !== "undefined") {
+                if (typeof(group) !== "undefined") {
                     if (typeof(group.drawer) !== "undefined") {
                         app.overlay(group.drawer, groupArg);
                     } else if (typeof(group.onLeftAction) !== "undefined") {
                         group.onLeftAction();
                     }
                 }
-            }else if($(this).hasClass("action-back")){
+            } else if ($(this).hasClass("action-back")) {
                 //back
                 var slots = app.element.children(".app-content").attr("slots");
                 var groupBack = true;
-                if($("body").width() < 1080 && $("body").width() >= 720){
-                    if(slots === "3"){
+                if ($("body").width() < 1080 && $("body").width() >= 720) {
+                    if (slots === "3") {
                         groupBack = false;
                     }
-                }else if($("body").width() < 720){
-                    if(slots === "2" || slots === "3"){
+                } else if ($("body").width() < 720) {
+                    if (slots === "2" || slots === "3") {
                         groupBack = false;
                     }
                 }
-                if(groupBack){
+                if (groupBack) {
                     app.groupBack();
-                }else{
+                } else {
                     app.back();
                 }
-            }else{
-                if(typeof(group) !== "undefined") {
+            } else {
+                if (typeof(group) !== "undefined") {
                     if (typeof(group.onLeftAction) !== "undefined") {
                         group.onLeftAction();
                     }
@@ -2425,84 +2535,84 @@ var paper = {
     /**
      * Update positions and sizes of the activities and position of the viewport
      */
-    App.prototype.updateLayout = function(){
+    App.prototype.updateLayout = function () {
         console.debug("update layout");
         var selectedActivity = 1;
         var eIcon = this.header.getElement().children(".left-action").children(".icon");
         var group = this.element.children(".app-content").children(".paper-group");
         var slots = 0;
         var eActivities = group.children(".paper-activity.pos-normal, .paper-activity.pos-medium, .paper-activity.pos-large");
-        eActivities.each(function(){
-            if($(this).hasClass("pos-normal")){
+        eActivities.each(function () {
+            if ($(this).hasClass("pos-normal")) {
                 slots += 1;
-            }else if($(this).hasClass("pos-medium")){
+            } else if ($(this).hasClass("pos-medium")) {
                 slots += 2;
-            }else if($(this).hasClass("pos-large")){
+            } else if ($(this).hasClass("pos-large")) {
                 slots += 3;
             }
         });
-        if(slots > 3){
+        if (slots > 3) {
             slots = 3;
         }
         group.parent().attr("slots", slots);
-        if($("body").width() >= 1080){
+        if ($("body").width() >= 1080) {
             //Set position
-            if(eActivities.length == 1){
+            if (eActivities.length == 1) {
                 var activity_1 = getCurrentActivity(this, 0);
-                if(typeof(activity_1) !== "undefined"){
-                    if(activity_1.visible === false){
-                        showActivity(activity_1);
-                    }
-                }
-
-                if(eActivities.eq(0).hasClass("pos-normal")){
-                    eActivities.eq(0).attr("pos", "xoo");
-                }else if(eActivities.eq(0).hasClass("pos-medium")){
-                    eActivities.eq(0).attr("pos", "xxo");
-                }else if(eActivities.eq(0).hasClass("pos-large")){
-                    eActivities.eq(0).attr("pos", "xxx");
-                }
-            }else if(eActivities.length == 2){
-                var activity_1 = getCurrentActivity(this, 0);
-                var activity_2 = getCurrentActivity(this, 1);
-                if(typeof(activity_1) !== "undefined") {
+                if (typeof(activity_1) !== "undefined") {
                     if (activity_1.visible === false) {
                         showActivity(activity_1);
                     }
                 }
-                if(typeof(activity_2) !== "undefined") {
+
+                if (eActivities.eq(0).hasClass("pos-normal")) {
+                    eActivities.eq(0).attr("pos", "xoo");
+                } else if (eActivities.eq(0).hasClass("pos-medium")) {
+                    eActivities.eq(0).attr("pos", "xxo");
+                } else if (eActivities.eq(0).hasClass("pos-large")) {
+                    eActivities.eq(0).attr("pos", "xxx");
+                }
+            } else if (eActivities.length == 2) {
+                var activity_1 = getCurrentActivity(this, 0);
+                var activity_2 = getCurrentActivity(this, 1);
+                if (typeof(activity_1) !== "undefined") {
+                    if (activity_1.visible === false) {
+                        showActivity(activity_1);
+                    }
+                }
+                if (typeof(activity_2) !== "undefined") {
                     if (activity_2.visible === false) {
                         showActivity(activity_2);
                     }
                 }
 
-                if(eActivities.eq(1).hasClass("pos-normal")){
-                    if(eActivities.eq(0).hasClass("pos-normal")){
+                if (eActivities.eq(1).hasClass("pos-normal")) {
+                    if (eActivities.eq(0).hasClass("pos-normal")) {
                         eActivities.eq(0).attr("pos", "xoo");
                         eActivities.eq(1).attr("pos", "oxo");
-                    }else{
+                    } else {
                         eActivities.eq(0).attr("pos", "xxo");
                         eActivities.eq(1).attr("pos", "oox");
                     }
-                }else{
+                } else {
                     eActivities.eq(0).attr("pos", "xoo");
                     eActivities.eq(1).attr("pos", "oxx");
                 }
-            }else if(eActivities.length == 3){
+            } else if (eActivities.length == 3) {
                 var activity_1 = getCurrentActivity(this, 0);
                 var activity_2 = getCurrentActivity(this, 1);
                 var activity_3 = getCurrentActivity(this, 2);
-                if(typeof(activity_1) !== "undefined") {
+                if (typeof(activity_1) !== "undefined") {
                     if (activity_1.visible === false) {
                         showActivity(activity_1);
                     }
                 }
-                if(typeof(activity_2) !== "undefined") {
+                if (typeof(activity_2) !== "undefined") {
                     if (activity_2.visible === false) {
                         showActivity(activity_2);
                     }
                 }
-                if(typeof(activity_3) !== "undefined") {
+                if (typeof(activity_3) !== "undefined") {
                     if (activity_3.visible === false) {
                         showActivity(activity_3);
                     }
@@ -2514,18 +2624,18 @@ var paper = {
             }
 
             //Remove back icon
-            if(eIcon.attr("last-action") === "icon"){
+            if (eIcon.attr("last-action") === "icon") {
                 eIcon.removeClass("action-back").removeClass("action-menu");
                 eIcon.removeAttr("last-action");
             }
-            if(eIcon.attr("last-action") === "menu"){
+            if (eIcon.attr("last-action") === "menu") {
                 eIcon.addClass("action-menu").removeClass("action-back");
                 eIcon.removeAttr("last-action");
             }
-        }else if($("body").width() >= 720){
-            if(eActivities.length == 1){
+        } else if ($("body").width() >= 720) {
+            if (eActivities.length == 1) {
                 var activity_1 = getCurrentActivity(this, 0);
-                if(typeof(activity_1) !== "undefined") {
+                if (typeof(activity_1) !== "undefined") {
                     if (activity_1.visible === false) {
                         showActivity(activity_1);
                     }
@@ -2533,16 +2643,16 @@ var paper = {
 
                 group.parent().attr("slots", 1);
                 eActivities.eq(0).attr("pos", "xxo");
-            }else if(eActivities.length == 2){
-                if(eActivities.eq(1).hasClass("pos-large") || eActivities.eq(1).hasClass("pos-medium")){
+            } else if (eActivities.length == 2) {
+                if (eActivities.eq(1).hasClass("pos-large") || eActivities.eq(1).hasClass("pos-medium")) {
                     var activity_1 = getCurrentActivity(this, 0);
                     var activity_2 = getCurrentActivity(this, 1);
-                    if(typeof(activity_1) !== "undefined") {
+                    if (typeof(activity_1) !== "undefined") {
                         if (activity_1.visible === true) {
                             hideActivity(activity_1);
                         }
                     }
-                    if(typeof(activity_2) !== "undefined") {
+                    if (typeof(activity_2) !== "undefined") {
                         if (activity_2.visible === false) {
                             showActivity(activity_2);
                         }
@@ -2552,15 +2662,15 @@ var paper = {
                     eActivities.eq(0).attr("pos", "xoo");
                     eActivities.eq(1).attr("pos", "oxx");
                     selectedActivity = 2;
-                }else{
+                } else {
                     var activity_1 = getCurrentActivity(this, 0);
                     var activity_2 = getCurrentActivity(this, 1);
-                    if(typeof(activity_1) !== "undefined") {
+                    if (typeof(activity_1) !== "undefined") {
                         if (activity_1.visible === false) {
                             showActivity(activity_1);
                         }
                     }
-                    if(typeof(activity_2) !== "undefined") {
+                    if (typeof(activity_2) !== "undefined") {
                         if (activity_2.visible === false) {
                             showActivity(activity_2);
                         }
@@ -2569,21 +2679,21 @@ var paper = {
                     eActivities.eq(0).attr("pos", "xoo");
                     eActivities.eq(1).attr("pos", "oxo");
                 }
-            }else if(eActivities.length == 3){
+            } else if (eActivities.length == 3) {
                 var activity_1 = getCurrentActivity(this, 0);
                 var activity_2 = getCurrentActivity(this, 1);
                 var activity_3 = getCurrentActivity(this, 2);
-                if(typeof(activity_1) !== "undefined") {
+                if (typeof(activity_1) !== "undefined") {
                     if (activity_1.visible === false) {
                         showActivity(activity_1);
                     }
                 }
-                if(typeof(activity_2) !== "undefined") {
+                if (typeof(activity_2) !== "undefined") {
                     if (activity_2.visible === false) {
                         showActivity(activity_2);
                     }
                 }
-                if(typeof(activity_3) !== "undefined") {
+                if (typeof(activity_3) !== "undefined") {
                     if (activity_3.visible === false) {
                         showActivity(activity_3);
                     }
@@ -2596,30 +2706,30 @@ var paper = {
             }
 
             //Set Back icon if necessary
-            if(group.parent().attr("slots") === "3"){
-                if(!eIcon.hasClass("action-back")){
-                    if(eIcon.hasClass("action-menu")){
+            if (group.parent().attr("slots") === "3") {
+                if (!eIcon.hasClass("action-back")) {
+                    if (eIcon.hasClass("action-menu")) {
                         eIcon.attr("last-action", "menu");
                         eIcon.addClass("action-back").removeClass("action-menu");
-                    }else{
+                    } else {
                         eIcon.attr("last-action", "icon");
                         eIcon.addClass("action-back")
                     }
                 }
-            }else{
-                if(eIcon.attr("last-action") === "icon"){
+            } else {
+                if (eIcon.attr("last-action") === "icon") {
                     eIcon.removeClass("action-back").removeClass("action-menu");
                     eIcon.removeAttr("last-action");
                 }
-                if(eIcon.attr("last-action") === "menu"){
+                if (eIcon.attr("last-action") === "menu") {
                     eIcon.addClass("action-menu").removeClass("action-back");
                     eIcon.removeAttr("last-action");
                 }
             }
-        }else{
-            if(eActivities.length == 1){
+        } else {
+            if (eActivities.length == 1) {
                 var activity_1 = getCurrentActivity(this, 0);
-                if(typeof(activity_1) !== "undefined") {
+                if (typeof(activity_1) !== "undefined") {
                     if (activity_1.visible === false) {
                         showActivity(activity_1);
                     }
@@ -2627,15 +2737,15 @@ var paper = {
 
                 group.parent().attr("slots", 1);
                 eActivities.eq(0).attr("pos", "xoo");
-            }else if(eActivities.length == 2){
+            } else if (eActivities.length == 2) {
                 var activity_1 = getCurrentActivity(this, 0);
                 var activity_2 = getCurrentActivity(this, 1);
-                if(typeof(activity_1) !== "undefined") {
+                if (typeof(activity_1) !== "undefined") {
                     if (activity_1.visible === true) {
                         hideActivity(activity_1);
                     }
                 }
-                if(typeof(activity_2) !== "undefined") {
+                if (typeof(activity_2) !== "undefined") {
                     if (activity_2.visible === false) {
                         showActivity(activity_2);
                     }
@@ -2645,21 +2755,21 @@ var paper = {
                 eActivities.eq(0).attr("pos", "xoo");
                 eActivities.eq(1).attr("pos", "oxo");
                 selectedActivity = 2;
-            }else if(eActivities.length == 3){
+            } else if (eActivities.length == 3) {
                 var activity_1 = getCurrentActivity(this, 0);
                 var activity_2 = getCurrentActivity(this, 1);
                 var activity_3 = getCurrentActivity(this, 2);
-                if(typeof(activity_1) !== "undefined") {
+                if (typeof(activity_1) !== "undefined") {
                     if (activity_1.visible === true) {
                         hideActivity(activity_1);
                     }
                 }
-                if(typeof(activity_2) !== "undefined") {
+                if (typeof(activity_2) !== "undefined") {
                     if (activity_2.visible === true) {
                         hideActivity(activity_2);
                     }
                 }
-                if(typeof(activity_3) !== "undefined") {
+                if (typeof(activity_3) !== "undefined") {
                     if (activity_3.visible === false) {
                         showActivity(activity_3);
                     }
@@ -2673,22 +2783,22 @@ var paper = {
             }
 
             //Set back icon if necessary
-            if(group.parent().attr("slots") === "3" || group.parent().attr("slots") === "2"){
-                if(!eIcon.hasClass("action-back")){
-                    if(eIcon.hasClass("action-menu")){
+            if (group.parent().attr("slots") === "3" || group.parent().attr("slots") === "2") {
+                if (!eIcon.hasClass("action-back")) {
+                    if (eIcon.hasClass("action-menu")) {
                         eIcon.attr("last-action", "menu");
                         eIcon.addClass("action-back").removeClass("action-menu");
-                    }else{
+                    } else {
                         eIcon.attr("last-action", "icon");
                         eIcon.addClass("action-back")
                     }
                 }
-            }else{
-                if(eIcon.attr("last-action") === "icon"){
+            } else {
+                if (eIcon.attr("last-action") === "icon") {
                     eIcon.removeClass("action-back").removeClass("action-menu");
                     eIcon.removeAttr("last-action");
                 }
-                if(eIcon.attr("last-action") === "menu"){
+                if (eIcon.attr("last-action") === "menu") {
                     eIcon.addClass("action-menu").removeClass("action-back");
                     eIcon.removeAttr("last-action");
                 }
@@ -2698,23 +2808,23 @@ var paper = {
         var title = this.title;
         var groupName = getCurrentGroup(this)[0];
         var vGroup = this.activityGroups[groupName];
-        if(typeof(vGroup) !== "undefined") {
+        if (typeof(vGroup) !== "undefined") {
             if (typeof(vGroup.title) !== "undefined") {
                 title = vGroup.title;
             }
         }
 
-        if(selectedActivity > 1){
-            for(var i = 1; i < selectedActivity; i++){
-                var iActivity = getCurrentActivity(this, i-1);
-                if(typeof(iActivity.title) !== "undefined"){
+        if (selectedActivity > 1) {
+            for (var i = 1; i < selectedActivity; i++) {
+                var iActivity = getCurrentActivity(this, i - 1);
+                if (typeof(iActivity.title) !== "undefined") {
                     title = iActivity.title;
                 }
             }
         }
 
-        var vActivity = getCurrentActivity(this, selectedActivity-1);
-        if(typeof(vActivity) !== "undefined") {
+        var vActivity = getCurrentActivity(this, selectedActivity - 1);
+        if (typeof(vActivity) !== "undefined") {
             if (typeof(vActivity.title) !== "undefined") {
                 title = vActivity.title;
             }
@@ -2724,9 +2834,9 @@ var paper = {
             vActivity.header.setSource(null);
             vActivity.header.setWrippels(true);
             vActivity.header.update();
-            if(selectedActivity != 1){
+            if (selectedActivity != 1) {
                 var iActivity = getCurrentActivity(this, 0);
-                if(typeof(iActivity) !== "undefined" && iActivity != null){
+                if (typeof(iActivity) !== "undefined" && iActivity != null) {
                     iActivity.header.setTitle(iActivity.title);
                     iActivity.header.setPushLeft(iActivity.pushleft);
                     iActivity.header.setIcon(iActivity.icon);
@@ -2735,9 +2845,9 @@ var paper = {
                     iActivity.header.update();
                 }
             }
-            if(selectedActivity != 2){
+            if (selectedActivity != 2) {
                 var iActivity = getCurrentActivity(this, 1);
-                if(typeof(iActivity) !==  "undefined" && iActivity != null){
+                if (typeof(iActivity) !== "undefined" && iActivity != null) {
                     iActivity.header.setTitle(iActivity.title);
                     iActivity.header.setPushLeft(iActivity.pushleft);
                     iActivity.header.setIcon(iActivity.icon);
@@ -2746,9 +2856,9 @@ var paper = {
                     iActivity.header.update();
                 }
             }
-            if(selectedActivity != 3){
+            if (selectedActivity != 3) {
                 var iActivity = getCurrentActivity(this, 2);
-                if(typeof(iActivity) !==  "undefined" && iActivity != null){
+                if (typeof(iActivity) !== "undefined" && iActivity != null) {
                     iActivity.header.setTitle(iActivity.title);
                     iActivity.header.setPushLeft(iActivity.pushleft);
                     iActivity.header.setIcon(iActivity.icon);
@@ -2765,9 +2875,9 @@ var paper = {
      * Get the name of this script (eg. http://localhost/index.php)
      * @returns {string}
      */
-    function getScriptName(){
+    function getScriptName() {
         var url = window.location.href;
-        if(url.indexOf("#") != -1){
+        if (url.indexOf("#") != -1) {
             url = url.split("#")[0];
         }
         return url;
@@ -2787,45 +2897,45 @@ var paper = {
 
         if (typeof(url) === "undefined") {
             var u = window.location.href;
-        }else{
+        } else {
             var u = url;
         }
-        while(u.substring(u.length-1, u.length) === "*"){
-            u = u.substring(0, u.length-1);
+        while (u.substring(u.length - 1, u.length) === "*") {
+            u = u.substring(0, u.length - 1);
         }
-        if(u.indexOf("#!") != -1){
+        if (u.indexOf("#!") != -1) {
             var path = u.split("#!")[1];
-            if(path.indexOf("+") != -1){
+            if (path.indexOf("+") != -1) {
                 path = path.split("+")[0];
             }
-            if(path.indexOf("/") != -1){
+            if (path.indexOf("/") != -1) {
                 var paths = path.split("/");
-                for(var i = 0; i < paths.length; i++){
+                for (var i = 0; i < paths.length; i++) {
                     var p = paths[i];
-                    if(i == 0){
-                        if(p.indexOf(":") != -1){
+                    if (i == 0) {
+                        if (p.indexOf(":") != -1) {
                             var entry = p.split(":");
                             location.group = entry[0];
-                            if(isArgDefined(entry[1])){
+                            if (isArgDefined(entry[1])) {
                                 location.arg = entry[1];
-                            }else{
+                            } else {
                                 location.arg = null;
                             }
-                        }else{
+                        } else {
                             location.group = p;
                             location.arg = null;
                         }
-                    }else{
-                        if(p.indexOf(":") != -1){
+                    } else {
+                        if (p.indexOf(":") != -1) {
                             var entry = p.split(":");
-                            if(!isArgDefined(entry[1])){
+                            if (!isArgDefined(entry[1])) {
                                 entry[1] = null;
                             }
                             location.acts.push({
                                 activity: entry[0],
                                 arg: entry[1]
                             });
-                        }else{
+                        } else {
                             location.acts.push({
                                 activity: p,
                                 arg: null
@@ -2833,27 +2943,27 @@ var paper = {
                         }
                     }
                 }
-            }else if(path.indexOf(":") != -1){
+            } else if (path.indexOf(":") != -1) {
                 var entry = path.split(":");
                 location.group = entry[0];
-                if(!isArgDefined(entry[1])){
+                if (!isArgDefined(entry[1])) {
                     entry[1] = null;
                 }
                 location.arg = entry[1];
-            }else{
+            } else {
                 location.group = path;
             }
-            if(u.indexOf("+") != -1){
+            if (u.indexOf("+") != -1) {
                 var overlayName = u.split("+")[1];
-                if(typeof(overlayName) !== "undefined" && overlayName !== null && overlayName !== ""){
-                    if(overlayName.indexOf(":") != -1){
+                if (typeof(overlayName) !== "undefined" && overlayName !== null && overlayName !== "") {
+                    if (overlayName.indexOf(":") != -1) {
                         var overlayData = overlayName.split(":");
                         location.overlay = overlayData[0];
-                        if(!isArgDefined(overlayData[1])){
+                        if (!isArgDefined(overlayData[1])) {
                             overlayData[1] = null;
                         }
                         location.overlayArg = overlayData[1];
-                    }else{
+                    } else {
                         location.overlay = overlayName;
                     }
                 }
@@ -2869,47 +2979,47 @@ var paper = {
      * @param acts
      * @returns {string}
      */
-    function generateLocation(group, arg, acts, overlay, overlayArg){
+    function generateLocation(group, arg, acts, overlay, overlayArg) {
         var groupName;
-        if(typeof(group.id) === "undefined"){
+        if (typeof(group.id) === "undefined") {
             groupName = group;
-        }else {
+        } else {
             groupName = group.id;
         }
         var hasActs = false;
-        if(typeof(acts) !== "undefined"){
+        if (typeof(acts) !== "undefined") {
             hasActs = acts.length > 0;
         }
-        if(groupName === "home" && !isArgDefined(arg) && (typeof(overlay) === "undefined" || overlay === null) && !hasActs){
+        if (groupName === "home" && !isArgDefined(arg) && (typeof(overlay) === "undefined" || overlay === null) && !hasActs) {
             return getScriptName();
         }
 
         var url = getScriptName() + "#!" + groupName;
-        if(isArgDefined(arg)){
+        if (isArgDefined(arg)) {
             url += ":" + arg;
         }
-        if(typeof(acts) !== "undefined"){
-            for(var i = 0; i < acts.length; i++){
-                if(typeof(acts[i]) !== "undefined") {
+        if (typeof(acts) !== "undefined") {
+            for (var i = 0; i < acts.length; i++) {
+                if (typeof(acts[i]) !== "undefined") {
                     if (typeof(acts[i].activity.id) === "undefined") {
                         url += "/" + acts[i].activity;
                     } else {
                         url += "/" + acts[i].activity.id;
                     }
-                    if(isArgDefined(acts[i].arg)){
+                    if (isArgDefined(acts[i].arg)) {
                         url += ":" + acts[i].arg;
                     }
                 }
             }
         }
 
-        if(typeof(overlay) !== "undefined" && overlay !== null){
-            if(typeof(overlay.id) === "undefined"){
+        if (typeof(overlay) !== "undefined" && overlay !== null) {
+            if (typeof(overlay.id) === "undefined") {
                 url += "+" + overlay;
-            }else{
+            } else {
                 url += "+" + overlay.id;
             }
-            if(isArgDefined(overlayArg)){
+            if (isArgDefined(overlayArg)) {
                 url += ":" + overlayArg;
             }
         }
@@ -2917,14 +3027,14 @@ var paper = {
         return url;
     }
 
-    function isArgDefined(arg){
-        if(typeof(arg) !== "undefined" && arg !== null && arg !== "undefined" && arg !== "null" && arg !== "0"){
+    function isArgDefined(arg) {
+        if (typeof(arg) !== "undefined" && arg !== null && arg !== "undefined" && arg !== "null" && arg !== "0") {
             return true;
         }
         return false;
     }
 
-    function RoutingManager(){
+    function RoutingManager() {
 
         var manager = this;
         var isInit = false;
@@ -2938,23 +3048,23 @@ var paper = {
          * @param url Current url
          * @returns {number, boolean} position or false if the url does not exists in the url list
          */
-        var findPosition = function(urlList, url){
+        var findPosition = function (urlList, url) {
             console.debug("routing -> [FIND POSITION] " + url);
             var pos = -1;
-            for(var i = 0; i < urlList.length; i++){
+            for (var i = 0; i < urlList.length; i++) {
                 var u = urlList[i];
                 var indexBack = urlList.length - i - 1;
-                if(u === url){
+                if (u === url) {
                     console.debug("routing -> " + indexBack + ". (x) " + u);
                     pos = indexBack;
-                }else{
+                } else {
                     console.debug("routing -> " + indexBack + ". ( ) " + u);
                 }
             }
             console.debug("routing -> [POSITION] " + pos);
-            if(pos === -1){
+            if (pos === -1) {
                 return false;
-            }else{
+            } else {
                 return pos;
             }
         };
@@ -2966,12 +3076,12 @@ var paper = {
          * @param oldUrls List of all the urls in the history
          * @returns {boolean, int} number of positions back, false if it cannot find the new or the old position
          */
-        var getAmountBack = function(oldUrls, oldUrl, newUrl){
+        var getAmountBack = function (oldUrls, oldUrl, newUrl) {
             var newIndex = findPosition(oldUrls, newUrl);
             var currentIndex = findPosition(oldUrls, oldUrl);
 
             var amountBack = false;
-            if(newIndex !== false && currentIndex !== false) {
+            if (newIndex !== false && currentIndex !== false) {
                 var amountBack = currentIndex - newIndex;
             }
             console.debug("routing -> [AMOUNT BACK] " + amountBack);
@@ -2984,32 +3094,32 @@ var paper = {
          * @param newUrl
          * @return {int} amount of popups should close
          */
-        var shouldClosePopup = function(oldUrl, newUrl){
+        var shouldClosePopup = function (oldUrl, newUrl) {
             var oldPopupCount = 0;
             var newPopupCount = 0;
             //Count old popups
             console.debug("routing -> POPUPS OLD: " + oldUrl);
-            for(var i = 0; i < oldUrl.length; i++){
-                var sub = oldUrl.substring(oldUrl.length-1-i, oldUrl.length-i);
-                if(sub === "*"){
+            for (var i = 0; i < oldUrl.length; i++) {
+                var sub = oldUrl.substring(oldUrl.length - 1 - i, oldUrl.length - i);
+                if (sub === "*") {
                     oldPopupCount++;
-                }else{
+                } else {
                     break;
                 }
             }
             //Count new popups
             console.debug("routing -> POPUPS NEW: " + newUrl);
-            for(var i = 0; i < newUrl.length; i++){
-                var sub = newUrl.substring(newUrl.length-1-i, newUrl.length-i);
-                if(sub === "*"){
+            for (var i = 0; i < newUrl.length; i++) {
+                var sub = newUrl.substring(newUrl.length - 1 - i, newUrl.length - i);
+                if (sub === "*") {
                     newPopupCount++;
-                }else{
+                } else {
                     break;
                 }
             }
             console.debug("routing -> PopupCount [" + oldPopupCount + "] [" + newPopupCount + "]");
             var dif = oldPopupCount - newPopupCount;
-            if(dif < 0){
+            if (dif < 0) {
                 dif = 0;
             }
             return dif;
@@ -3019,7 +3129,7 @@ var paper = {
          * Register new pushState with callBack
          * @param callBack - called when the popup should close
          */
-        this.pushCustomState = function(callBack){
+        this.pushCustomState = function (callBack) {
             console.debug("routing -> [POPUP] " + location.href);
             customStates.push(callBack);
             history.pushState(document.title, document.title, location.href + "*");
@@ -3035,10 +3145,10 @@ var paper = {
          * @param url - new url
          * @param title - new title
          */
-        this.replaceUrl = function(url, title){
+        this.replaceUrl = function (url, title) {
             console.debug("routing -> [REPLACE] " + location.href + " ->" + url);
             var urls = getHistoryItems();
-            urls[urls.length-1] = url;
+            urls[urls.length - 1] = url;
             setHistoryItems(urls);
             setLastUrl(url);
             history.replaceState(title, title, url);
@@ -3053,13 +3163,13 @@ var paper = {
          * @param {boolean} modifyHistory
          * @return {boolean} true if back
          */
-        this.goTo = function(newUrl, title, old, modifyHistory){
+        this.goTo = function (newUrl, title, old, modifyHistory) {
             var oldUrl = old;
-            if(typeof(oldUrl) === "undefined"){
+            if (typeof(oldUrl) === "undefined") {
                 oldUrl = location.href;
             }
             var modHistory = true;
-            if(modifyHistory === false){
+            if (modifyHistory === false) {
                 modHistory = false;
             }
             console.debug("routing -> [GOTO] " + oldUrl + " ->" + newUrl);
@@ -3068,7 +3178,7 @@ var paper = {
             var oldUrls = getHistoryItems();
             var newLength = history.length;
 
-            if(newUrl !== oldUrl){
+            if (newUrl !== oldUrl) {
                 console.debug("routing -> [LOCATION CHANGED]");
                 var oldUrlData = getPath(oldUrl);
                 var newUrlData = getPath(newUrl);
@@ -3078,41 +3188,41 @@ var paper = {
                 //Check if popups should close
                 var popupsShouldClose = shouldClosePopup(oldUrl, newUrl);
                 //Close popups
-                for(var i = 0; i < popupsShouldClose; i++){
+                for (var i = 0; i < popupsShouldClose; i++) {
                     console.debug("routing -> [CLOSE POPUP]");
-                    if(typeof(customStates[customStates.length - 1]) !== "undefined"){
+                    if (typeof(customStates[customStates.length - 1]) !== "undefined") {
                         customStates[customStates.length - 1]();
                         customStates.splice(customStates.length - 1, 1);
                     }
                 }
 
-                if(oldUrlData.overlay === newUrlData.overlay &&
+                if (oldUrlData.overlay === newUrlData.overlay &&
                     oldUrlData.overlayArg === newUrlData.overlayArg &&
                     oldUrlData.group === newUrlData.group &&
                     oldUrlData.arg === newUrlData.arg &&
-                    oldUrlData.acts.length === newUrlData.acts.length){
+                    oldUrlData.acts.length === newUrlData.acts.length) {
                     var same = true;
-                    for(var i = 0; i < oldUrlData.acts.length; i++){
-                        if(oldUrlData.acts[i].activity !== newUrlData.acts[i].activity ||
-                            oldUrlData.acts[i].arg !== newUrlData.acts[i].arg){
+                    for (var i = 0; i < oldUrlData.acts.length; i++) {
+                        if (oldUrlData.acts[i].activity !== newUrlData.acts[i].activity ||
+                            oldUrlData.acts[i].arg !== newUrlData.acts[i].arg) {
                             same = false;
                         }
                     }
-                    if(same){
+                    if (same) {
                         console.debug("routing -> [LOCATION SAME]");
-                        for(var i = 0; i < popupsShouldClose; i++){
-                            if(oldUrls.length >= 3) {
+                        for (var i = 0; i < popupsShouldClose; i++) {
+                            if (oldUrls.length >= 3) {
                                 var closeUrl = oldUrls[oldUrls.length - 1];
                                 var gotoUrl = oldUrls[oldUrls.length - 2];
-                                if(closeUrl.substring(closeUrl.length-1, closeUrl.length) === "*"){
+                                if (closeUrl.substring(closeUrl.length - 1, closeUrl.length) === "*") {
                                     console.debug("routing -> [CLOSE URL] " + closeUrl + " -> " + gotoUrl);
                                     var title = document.title;
                                     autoBack = true;
                                     history.go(-1);
-                                    setTimeout(function(){
+                                    setTimeout(function () {
                                         history.pushState(title, title, gotoUrl);
                                     }, 10);
-                                    oldUrls.splice(oldUrls.length-1, 1);
+                                    oldUrls.splice(oldUrls.length - 1, 1);
                                 }
                             }
                         }
@@ -3124,54 +3234,54 @@ var paper = {
                     }
                 }
 
-                if(oldUrlData.overlay !== null && newUrlData.overlay === null){
+                if (oldUrlData.overlay !== null && newUrlData.overlay === null) {
                     isReplace = true;
                 }
 
                 if (newUrlData.group === oldUrlData.group && newUrlData.arg === oldUrlData.arg) {
-                    if(newUrlData.acts.length < oldUrlData.acts.length){
+                    if (newUrlData.acts.length < oldUrlData.acts.length) {
                         isNewLower = true;
                     }
-                    if(newUrlData.acts.length == oldUrlData.acts.length && newUrlData.overlay === null && oldUrlData.overlay !== null){
+                    if (newUrlData.acts.length == oldUrlData.acts.length && newUrlData.overlay === null && oldUrlData.overlay !== null) {
                         isNewLower = true
                     }
-                }else if(newUrlData.group === "home" && oldUrlData.group !== "home"){
+                } else if (newUrlData.group === "home" && oldUrlData.group !== "home") {
                     isNewLower = true;
                 }
 
                 console.debug("routing -> [isNewLower] " + isNewLower);
                 console.debug("routing -> [isReplace] " + isReplace);
-                if(isReplace && !isNewLower){
+                if (isReplace && !isNewLower) {
                     //Replace current state
                     manager.replaceUrl(newUrl, title);
-                }else if(isNewLower){
+                } else if (isNewLower) {
                     //Go back
                     var amountBack = getAmountBack(oldUrls, oldUrl, newUrl);
 
                     console.debug("routing -> [goBack] " + amountBack);
-                    if(amountBack === false){
+                    if (amountBack === false) {
                         //History item not exists
                         console.debug("routing -> [NOT FOUND]");
 
                         var oldTitle = document.title;
                         history.replaceState(title, title, newUrl);
                         history.pushState(oldTitle, oldTitle, oldUrl);
-                        if(modHistory) {
+                        if (modHistory) {
                             autoBack = true;
                             history.back();
                         }
                         var currentPos = findPosition(oldUrls, oldUrl);
-                        if(currentPos === false) {
+                        if (currentPos === false) {
                             oldUrls[oldUrls.length - 1] = newUrl;
                             oldUrls.push(oldUrl);
-                        }else{
+                        } else {
                             var newUrls = [];
-                            for(var i = 0; i < oldUrls.length - currentPos -1; i++){
+                            for (var i = 0; i < oldUrls.length - currentPos - 1; i++) {
                                 newUrls.push(oldUrls[i]);
                             }
                             newUrls.push(newUrl);
                             newUrls.push(oldUrl);
-                            for(var i = currentPos; i < oldUrls.length; i++){
+                            for (var i = currentPos; i < oldUrls.length; i++) {
                                 newUrls.push(oldUrls[i]);
                             }
                             oldUrls = newUrls;
@@ -3180,40 +3290,40 @@ var paper = {
                         setHistoryLength(history.length);
                         setLastUrl(newUrl);
                         return false;
-                    }else{
+                    } else {
                         //History item exists
                         console.debug("routing -> [GO BACK] " + amountBack);
                         autoBack = true;
-                        if(modHistory) {
+                        if (modHistory) {
                             history.go(amountBack);
                         }
                         setHistoryLength(history.length);
                         setLastUrl(newUrl);
                         return false;
                     }
-                }else{
+                } else {
                     console.debug("routing -> [GO FORWARD]");
                     //Go forward
                     var oldLength = history.length;
-                    if(modHistory) {
+                    if (modHistory) {
                         history.pushState(title, title, newUrl);
                     }
                     var newLength = history.length;
-                    if(newLength == oldLength +1){
+                    if (newLength == oldLength + 1) {
                         //Do nothing
                         console.debug("routing -> [DO NOTHING]");
-                    }else if(newLength <= oldLength){
+                    } else if (newLength <= oldLength) {
                         //Rewrite history
                         console.debug("routing -> [REWRITE HISTORY]");
                         console.debug("routing -> [OLD LENGTH] " + oldLength);
                         console.debug("routing -> [NEW LENGTH] " + newLength);
                         var dif = oldLength - newLength;
                         console.debug("routing -> [DIFFERENTS] " + dif);
-                        if(dif > oldUrls.length){
+                        if (dif > oldUrls.length) {
                             oldUrls = [];
-                        }else{
+                        } else {
                             var nurls = [];
-                            for(var i = 0; i < oldUrls.length-dif-1; i++){
+                            for (var i = 0; i < oldUrls.length - dif - 1; i++) {
                                 nurls.push(oldUrls[i]);
                             }
                             oldUrls = nurls;
@@ -3226,7 +3336,7 @@ var paper = {
                     setHistoryLength(history.length);
                     setLastUrl(newUrl);
                 }
-            }else{
+            } else {
                 console.debug("routing -> [LOCATION SAME]");
 
                 setHistoryLength(history.length);
@@ -3238,12 +3348,12 @@ var paper = {
         /**
          * Check if there are changes in the browser history, and respond to it if necessary
          */
-        this.update = function(){
+        this.update = function () {
             console.debug("routing -> [UPDATE]");
-            if(!isInit){
+            if (!isInit) {
                 init();
-            }else {
-                if(autoBack){
+            } else {
+                if (autoBack) {
                     console.debug("routing -> [AUTO BACK]");
                     autoBack = false;
                     return;
@@ -3255,38 +3365,38 @@ var paper = {
                 var newUrl = location.href;
                 var newLength = history.length;
 
-                if(oldLength == null || oldUrls.length == 0 || oldUrl == null){
+                if (oldLength == null || oldUrls.length == 0 || oldUrl == null) {
                     //No session -> do nothing
                     console.debug("routing -> [NEW SESSION]");
                     oldUrls.push(newUrl);
                     setHistoryItems(oldUrls);
                     setHistoryLength(newLength);
                     setLastUrl(newUrl);
-                }else{
+                } else {
                     var moved = false;
-                    if(oldLength == newLength){
-                        if(oldUrl === newUrl){
+                    if (oldLength == newLength) {
+                        if (oldUrl === newUrl) {
                             //Reload -> do nothing
                             console.debug("routing -> [RELOAD]");
-                        }else{
+                        } else {
                             //Moved
                             moved = true;
                             console.debug("routing -> [MOVED]");
                         }
-                    }else if(oldLength +1 == newLength){
+                    } else if (oldLength + 1 == newLength) {
                         //Go forward -> Add new entry
                         oldUrls.push(newUrl);
                         console.debug("routing -> [FORWARD]");
-                    }else if(oldLength +1 < newLength){
+                    } else if (oldLength + 1 < newLength) {
                         //Went away - Clear history
                         oldUrls = [newUrl];
                         console.debug("routing -> [AWAY]");
-                    }else{
+                    } else {
                         //Moved
                         moved = true;
                         console.debug("routing -> [MOVED]");
                     }
-                    if(moved){
+                    if (moved) {
                         manager.goTo(newUrl, document.title, oldUrl, false);
                         //var amountBack = getAmountBack(oldUrls, oldUrl, newUrl);
                         //if(amountBack === false){
@@ -3305,7 +3415,7 @@ var paper = {
                         //    console.debug(newUrls);
                         //    oldUrls = newUrls;
                         //}
-                    }else{
+                    } else {
                         setHistoryItems(oldUrls);
                         setHistoryLength(newLength);
                         setLastUrl(newUrl);
@@ -3317,13 +3427,13 @@ var paper = {
         /**
          * Bind popstate listener
          */
-        var init = function(){
-            if(isInit){
+        var init = function () {
+            if (isInit) {
                 return;
             }
             isInit = true;
             console.debug("routing -> [INIT]");
-            $(window).bind("popstate", function(){
+            $(window).bind("popstate", function () {
                 manager.update();
             });
             manager.update();
@@ -3333,7 +3443,7 @@ var paper = {
          * Get the last url
          * @returns {string,null}
          */
-        var getLastUrl = function(){
+        var getLastUrl = function () {
             return window.sessionStorage.getItem(appTitle + ".routing.lasturl");
         };
 
@@ -3341,7 +3451,7 @@ var paper = {
          * Get the last history length from sessionStorage
          * @returns {string,null}
          */
-        var getHistoryLength = function(){
+        var getHistoryLength = function () {
             return window.sessionStorage.getItem(appTitle + ".routing.length");
         };
 
@@ -3349,11 +3459,11 @@ var paper = {
          * Get array of history items from sessionStorage
          * @returns {Array} urls
          */
-        var getHistoryItems = function(){
+        var getHistoryItems = function () {
             var itemLength = window.sessionStorage.getItem(appTitle + ".routing.items");
             var items = [];
-            if(itemLength != null){
-                for(var i = 0; i < itemLength; i++){
+            if (itemLength != null) {
+                for (var i = 0; i < itemLength; i++) {
                     items.push(window.sessionStorage.getItem(appTitle + ".routing.item_" + i));
                 }
             }
@@ -3364,7 +3474,7 @@ var paper = {
          * Set the last url in the sessionStorage
          * @param {int} historyLength
          */
-        var setLastUrl = function(lastUrl){
+        var setLastUrl = function (lastUrl) {
             window.sessionStorage.setItem(appTitle + ".routing.lasturl", lastUrl);
         };
 
@@ -3372,7 +3482,7 @@ var paper = {
          * Set the current history length in the sessionStorage
          * @param {int} historyLength
          */
-        var setHistoryLength = function(historyLength){
+        var setHistoryLength = function (historyLength) {
             window.sessionStorage.setItem(appTitle + ".routing.length", historyLength);
         };
 
@@ -3380,9 +3490,9 @@ var paper = {
          * Set the history items in the sessionStorage
          * @param {Array} items - urls
          */
-        var setHistoryItems = function(items){
+        var setHistoryItems = function (items) {
             window.sessionStorage.setItem(appTitle + ".routing.items", items.length);
-            for(var i = 0; i < items.length; i++){
+            for (var i = 0; i < items.length; i++) {
                 window.sessionStorage.setItem(appTitle + ".routing.item_" + i, items[i]);
             }
         };
@@ -3454,7 +3564,7 @@ var paper = {
             }
             $(this).removeClass("danger");
         });
-
+        
         $("body").on("blur", ".paper-input select", function(){
             var label = $(this).parent().children("label");
             if($(this).find(":selected").val() === "0"){
@@ -3553,7 +3663,7 @@ var paper = {
             if(e.hasClass("paper-checkbox")){
                 if(!e.parent().hasClass("paper-checkbox-container")){
                     var container = $("<div class='paper-checkbox-container'></div>");
-                    e.before(container);
+                    //e.before(container);
                     e.appendTo(container);
                 }
                 if(!e.next().hasClass("box")){
@@ -3837,17 +3947,31 @@ var paper = {
 
             var message = "";
             for(var i = 0; i < options.length; i++){
-                var checked = options[i] === selectedOptions;
-                message += "<div class='paper-radio" + (checked ? " checked" : "") + "'>";
-                message += '<input type="radio" name="modal-options" value="1"' + (checked ? " checked='checked'" : "") + '/>';
-                message += "<div class='box-overlay wrippels'>";
-                message += '<div class="box"></div>';
-                message += '</div>';
-                message += "<div class='paper-radio-label'>";
-                message += '<h4>' + options[i] + '</h4>';
-                message += '</div>';
-                message += '</div>';
+                var wrapper = $("<div></div>");
+                var color = "";
+                if(typeof(paper.app) !== "undefined"){
+                    if(typeof(paper.app.instance) !== "undefined"){
+                        color = paper.app.instance.color;
+                        var groupName = paper.app.instance.getUrlData()["group"];
+                        for(var j = 0; j < paper.app.instance.activityGroups.length; j++){
+                            if(paper.app.instance.activityGroups[j].title === groupName){
+                                if(typeof(paper.app.instance.activityGroups[j].color) !== "undefined"){
+                                    color = paper.app.instance.activityGroups[j].color;
+                                }
+                            }
+                        }
+                    }
+                }
+                var container = $("<div class='paper-align medium'></div>").appendTo(wrapper);
+                var icon = $("<div class='icon'></div>").appendTo(container);
+                var radioContainer = $("<div class='paper-radio-container'></div>").appendTo(icon);
 
+                var checked = options[i] === selectedOptions;
+                var radiobox = $("<input type='radio' name='modal-options' class='paper-radio " + color + "' value='1'"  + (checked ? " checked='checked'" : "") + "/>").appendTo(radioContainer);
+                var box = $("<div class='box'><div class='wrippels'></div></div>").appendTo(radioContainer);
+
+                $("<div class='title'></div>").text(options[i]).appendTo(container);
+                message += wrapper.html();
             }
 
             if (cancelTxt == null) {
@@ -3922,11 +4046,11 @@ var paper = {
             if (theme === THEME_INPUT) {
                 $("input[name='modal-input']").select();
             }
-            $(".paper-modal .paper-radio").click(function(){
-                var value = $(this).find("h4").html();
-                if(typeof(paper.app) !== "undefined"){
+            $(".paper-modal .paper-radio-container").click(function(){
+                var value = $(this).parent().parent().find(".title").text();
+                if (typeof(paper.app) !== "undefined") {
                     history.back();
-                }else{
+                } else {
                     destroy();
                 }
                 if (action && (typeof action == "function")) {
@@ -4179,5 +4303,161 @@ var paper = {
     };
 
 
+
+})();
+(function(){
+
+    paper.tabs = {
+
+        init: function(element){
+            if(typeof(element) === "undefined"){
+                var e = $("body");
+            }else{
+                var e = $(element);
+            }
+            if(e.hasClass("paper-tabs")){
+                var selectedIndex = 0;
+                var tabs = e.children(".tab");
+                tabs.each(function(index){
+                    var left = index * (100 / tabs.length);
+                    var right = (tabs.length - index -1) * (100 / tabs.length);
+                    $(this).css("left", left + "%");
+                    $(this).css("right", right + "%");
+                    if($(this).hasClass("selected")){
+                        selectedIndex = index;
+                    }
+                });
+                paper.tabs.setSelectedTab(e, selectedIndex);
+            }else{
+                e.find(".paper-tabs").each(function(){
+                    paper.tabs.init(this);
+                });
+            }
+        },
+
+        create: function(options){
+            return new Tabs(options);
+        },
+
+        render: function(tabs, element){
+            var eTabs = $("<div class='paper-tabs'></div>");
+            if(tabs.getFor() !== null){
+                eTabs.attr("for", tabs.getFor());
+            }
+            eTabs.attr("value", tabs.getSelectedTab());
+            for(var i = 0; i < tabs.getTabs().length; i++){
+                var eTab = $("<div class='tab wrippels'>" + tabs.getTabs()[i] + "</div>");
+                if(tabs.getSelectedTab() === i){
+                    eTab.addClass("selected");
+                }
+                eTab.appendTo(eTabs);
+            }
+            if(tabs.getSelectionColor() !== null){
+                var eSelectionBar = $("<div class='selection-bar'></div>");
+                eSelectionBar.addClass(tabs.getSelectionColor());
+                eSelectionBar.appendTo(eTabs);
+            }
+            paper.tabs.init(eTabs);
+            eTabs.appendTo(element);
+        },
+
+        setSelectedTab: function(element, selectedIndex){
+            var tabContainer = $(element);
+            tabContainer.children(".tab").removeClass("selected");
+            tabContainer.attr("value", selectedIndex);
+            var selectedTab = tabContainer.children(".tab").eq(selectedIndex);
+            selectedTab.addClass("selected");
+            var selectionBar = tabContainer.children(".selection-bar");
+            selectionBar.css("left", selectedTab.css("left"));
+            selectionBar.css("right", selectedTab.css("right"));
+            var panelContainer = $(tabContainer.attr("for"));
+            if(panelContainer.length > 0){
+                var panels = panelContainer.children(".tab-panel");
+                panels.removeClass("selected").removeClass("before").removeClass("after");
+                panelContainer.children(".tab-panel").each(function(i){
+                    if(i < selectedIndex){
+                        $(this).addClass("before");
+                    }else if(i == selectedIndex){
+                        $(this).addClass("selected");
+                    }else if(i > selectedIndex){
+                        $(this).addClass("after");
+                    }
+                });
+            }
+            tabContainer.trigger("change", [selectedIndex]);
+        }
+
+    };
+
+    $("body").ready(function(){
+        $("body").on("click", ".paper-tabs .tab", function(){
+            paper.tabs.setSelectedTab($(this).parent(), $(this).index());
+        });
+        $(window).resize(function(){
+            var tabContainer = $(".paper-tabs");
+            var selectedTab = tabContainer.children(".tab.selected");
+            var selectionBar = tabContainer.children(".selection-bar");
+            selectionBar.css("left", selectedTab.css("left"));
+            selectionBar.css("right", selectedTab.css("right"));
+        });
+    });
+
+    function Tabs(options){
+        this.tabs = [];
+        this.selectedTab = 0;
+        this.selectionColor = null;
+        this.link = null;
+
+        if(typeof(options) !== "undefined"){
+            if(typeof(options.tabs) !== "undefined"){
+                this.tabs = options.tabs;
+            }
+            if(typeof(options.selectedTab) !== "undefined"){
+                this.selectedTab = options.selectedTab;
+            }
+            if(typeof(options.selectionColor) !== "undefined"){
+                this.selectionColor = options.selectionColor;
+            }
+            if(typeof(options.for) !== "undefined"){
+                this.link = options.for;
+            }
+        }
+    }
+
+    Tabs.prototype.setFor = function(link){
+        this.link = link;
+    };
+
+    Tabs.prototype.getFor = function(){
+        return this.link;
+    };
+
+    Tabs.prototype.setTabs = function(tabs){
+        this.tabs = tabs;
+    };
+
+    Tabs.prototype.getTabs = function(){
+        return this.tabs;
+    };
+
+    Tabs.prototype.setSelectionColor = function(color){
+        this.selectionColor = color;
+    };
+
+    Tabs.prototype.getSelectionColor = function(){
+        return this.selectionColor;
+    };
+
+    Tabs.prototype.render = function(element){
+        paper.tabs.render(this, element);
+    };
+
+    Tabs.prototype.setSelectedTab = function(index){
+        this.selectedTab = index;
+    };
+
+    Tabs.prototype.getSelectedTab = function(){
+        return this.selectedTab;
+    };
 
 })();
