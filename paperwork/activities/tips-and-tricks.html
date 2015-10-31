@@ -3,7 +3,10 @@
 </template>
 <script>
     app.activity("tips-and-tricks", function(){
+
         this.title = "Tips and Tricks";
+        this.icon = "mdi-action-favorite";
+        this.hOptions = {size: "medium"};
 
         this.onCreate = function(){
             setTimeout(function(){

@@ -95,7 +95,10 @@
 </template>
 <script>
     app.activity("colors", function(){
+
         this.title = "Colors";
+        this.icon = "mdi-image-brush";
+        this.hOptions = {size: "medium"};
 
         this.onCreate = function(){
             setTimeout(function(){

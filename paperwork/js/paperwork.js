@@ -44,7 +44,7 @@ var paper = {
     /**
      * List of all modules
      */
-    modules: ["app", "checkbox", "radio", "switch", "header", "input", "lang", "list", "alert", "snackbar", "toast", "wrippels", "loading", "progress"],
+    modules: ["app", "checkbox", "radio", "switch", "header", "input", "lang", "list", "alert", "snackbar", "toast", "wrippels", "loading", "progress", "tabs"],
 
     /**
      * Get list of installed modules
@@ -266,12 +266,12 @@ var paper = {
         h += parseInt($(tthis).css("padding-bottom"));
 
         //if(!isLight || !isRound) {
-            var size = Math.sqrt(Math.pow(w, 2) + Math.pow(h, 2)) * 2;
+        var size = Math.sqrt(Math.pow(w, 2) + Math.pow(h, 2)) * 2;
 
-            //calc pos
-            var offset = $(tthis).offset();
-            var x = Math.round(event.pageX - offset.left) - size / 2;
-            var y = Math.round(event.pageY - offset.top) - size / 2;
+        //calc pos
+        var offset = $(tthis).offset();
+        var x = Math.round(event.pageX - offset.left) - size / 2;
+        var y = Math.round(event.pageY - offset.top) - size / 2;
         //}else{
         //    var size = (w < h ? w : h);
         //    var x = 0;
@@ -464,6 +464,7 @@ var paper = {
         render: function (header) {
             var eHeader = $("<div class='paper-header'></div>");
             eHeader.addClass(header.getColor());
+            eHeader.addClass(header.getSize());
             if(header.getTitle() !== null || (header.getIcon() !== null || header.getLeftAction() !== null)){
                 var leftAction = $("<div class='left-action'></div>").appendTo(eHeader);
                 var hasIcon = header.getPushLeft();
@@ -499,6 +500,13 @@ var paper = {
                 }
             }
             updateActionButtons(header, eHeader);
+
+            eHeader.append("<div class='middle-bar'></div>");
+            var bottomBar = $("<div class='bottom-bar'></div>");
+            bottomBar.appendTo(eHeader);
+            if(header.getTabs() !== null && typeof(paper.tabs) !== "undefined"){
+                paper.tabs.render(header.getTabs(), bottomBar);
+            }
 
             return eHeader;
         },
@@ -546,7 +554,7 @@ var paper = {
         update: function (header) {
             var element = header.getElement();
 
-            element.attr("class", "paper-header " + header.getColor());
+            element.attr("class", "paper-header " + header.getColor() + " " + header.getSize());
 
             var renderIcon = !(header.getLeftAction() === null && header.getSource() === null && header.getIcon() === null);
             var eLeftAction = element.find(".left-action");
@@ -609,7 +617,7 @@ var paper = {
                 if(header.getSource() !== null){
                     icon.find("i").css("background-image", "url(" + header.getSource() + ")");
                 }
-                if(header.getLeftAction() === null && header.getSource() === null){
+                if(header.getLeftAction() === null && header.getSource() === null && header.getIcon() === null){
                     icon.remove();
                 }
 
@@ -850,6 +858,8 @@ var paper = {
         this.src = null;
         this.pushLeft = false;
         this.wrippels = true;
+        this.tabs = null;
+        this.size = "small";
 
         if (typeof(options) !== "undefined") {
 
@@ -877,9 +887,34 @@ var paper = {
             if (typeof(options.wrippels) !== "undefined") {
                 this.setWrippels(options.wrippels);
             }
+            if (typeof(options.tabs) !== "undefined") {
+                this.setTabs(options.tabs);
+            }
+            if (typeof(options.size) !== "undefined") {
+                this.setSize(options.size);
+            }
 
         }
     }
+
+    Header.prototype.setSize = function(size){
+        if(size !== "small" && size !== "medium" && size !== "large"){
+            throw "Unknown size '" + size + "'";
+        }
+        this.size = size;
+    };
+
+    Header.prototype.getSize = function(){
+        return this.size;
+    };
+
+    Header.prototype.setTabs = function(tabs){
+        this.tabs = tabs;
+    };
+
+    Header.prototype.getTabs = function(){
+        return this.tabs;
+    };
 
     Header.prototype.setWrippels = function(wrippels){
         this.wrippels = wrippels;
@@ -1237,7 +1272,7 @@ var paper = {
             canceled: undefined,
             connectionError: undefined,
             serverError: undefined,
-            notfound: "<h1><i class='mdi-alert-error fg-red'></i>Nothing here...</h1><h2>You'd better go <button onclick='history.back()' class='paper-button wrippels'><i class='mdi-navigation-arrow-back'></i>back</button></h2>"
+            notfound: "<h1><i class='mdi-alert-error fg-red'></i>Nothing here...</h1><button onclick='history.back()' class='paper-button wrippels'><i class='mdi-navigation-arrow-back'></i>back</button>"
         },
 
         generateLocation: generateLocation
@@ -1291,8 +1326,11 @@ var paper = {
         if(id === null || id === ""){
             throw "Activity id cannot be empty";
         }
-        if(typeof(this.activities[id]) !== "undefined") {
-            throw "Activity '" + id + "' already exists";
+        var existingActivity = this.activities[id];
+        if(typeof(existingActivity) !== "undefined") {
+            if(existingActivity._temp !== true) {
+                throw "Activity '" + id + "' already exists";
+            }
         }
 
         //Add properties to activity
@@ -1421,7 +1459,7 @@ var paper = {
      * @param {boolean} pushState - History pushState
      */
     App.prototype.goToGroup = function(groupName, arg, pushState){
-        var url = getScriptName() + "#" + groupName;
+        var url = getScriptName() + "#!" + groupName;
         if(typeof(arg) !== "undefined" && arg !== null){
             url += ":" + arg
         }
@@ -1519,22 +1557,8 @@ var paper = {
             if(urlData.acts.length == 0){
                 console.debug("clear activity 2 and 3");
                 //Remove Activity 2 and 3 if exists
-                var activity_2 = getCurrentActivity(app, 1);
-                var activity_3 = getCurrentActivity(app, 2);
-                if(activity_2 != null){
-                    hideActivity(activity_2);
-                    setTimeout(function(){
-                        destroyActivity(activity_2);
-                        app.updateLayout();
-                    }, 200);
-                }
-                if(activity_3 != null){
-                    hideActivity(activity_3);
-                    setTimeout(function(){
-                        destroyActivity(activity_3);
-                        app.updateLayout();
-                    }, 200);
-                }
+                closeActivity(app, 1);
+                closeActivity(app, 2);
             }
             if(urlData.acts.length >= 1){
                 console.debug("check if activity 2 exists");
@@ -1559,7 +1583,14 @@ var paper = {
                     }
                 }else{
                     console.debug("no");
-                    setCurrentActivity(app, urlData.acts[0].activity, 2, urlData.acts[0].arg);
+                    var closed = closeActivity(app, 1);
+                    if(closed){
+                        setTimeout(function(){
+                            setCurrentActivity(app, urlData.acts[0].activity, 2, urlData.acts[0].arg);
+                        }, 200);
+                    }else{
+                        setCurrentActivity(app, urlData.acts[0].activity, 2, urlData.acts[0].arg);
+                    }
                 }
             }
             if(urlData.acts.length >= 2){
@@ -1583,18 +1614,18 @@ var paper = {
                     }
                 }else{
                     console.debug("no");
-                    setCurrentActivity(app, urlData.acts[1].activity, 3, urlData.acts[1].arg);
+                    var closed = closeActivity(app, 2);
+                    if(closed){
+                        setTimeout(function(){
+                            setCurrentActivity(app, urlData.acts[1].activity, 3, urlData.acts[1].arg);
+                        }, 200);
+                    }else{
+                        setCurrentActivity(app, urlData.acts[1].activity, 3, urlData.acts[1].arg);
+                    }
                 }
             }else{
                 //Remove Activity 3
-                var activity_3 = getCurrentActivity(app, 2);
-                if(activity_3 != null){
-                    hideActivity(activity_3);
-                    setTimeout(function(){
-                        destroyActivity(activity_3);
-                        app.updateLayout();
-                    }, 200);
-                }
+                closeActivity(app, 2);
             }
         }else{
             console.debug("different group");
@@ -1613,6 +1644,36 @@ var paper = {
             }
         }
     };
+
+    /**
+     * Hide and destroy activity
+     * @param app
+     * @param index
+     * @return {boolean} - if activity closed true otherwise false
+     */
+    function closeActivity(app, index){
+        var eActivities = app.element.children(".app-content").children(".paper-group").children(".paper-activity");
+        if(eActivities.length <= index){
+            return false;
+        }
+        var eActivity = eActivities.eq(index);
+        var name = eActivity.attr("activity");
+        var activity = app.activities[name];
+        if(typeof(activity) === "undefined"){
+            eActivity.find(".activity-body").addClass("fade");
+            eActivity.find(".paper-header").addClass("fade");
+            setTimeout(function(){
+                eActivity.remove();
+            }, 200);
+        }else{
+            hideActivity(activity);
+            setTimeout(function(){
+                destroyActivity(activity);
+                app.updateLayout();
+            }, 200);
+        }
+        return true;
+    }
 
     /**
      * Show activity as overlay
@@ -1933,113 +1994,167 @@ var paper = {
         console.debug("Create Activity: " + activityName);
         var activity = app.activities[activityName];
         if(typeof(activity) !== "undefined") {
-            //Reset settings
-            activity.loaded = function () {};
-            activity.isLoaded = false;
+            return buildActivity(app, activity, invokeArg, color)
+        }else{
+            var emptyActivity = new function(){
 
-            //Create jQuery object
-            var eActivity = $("<div class='paper-activity'></div>");
-            activity.element = eActivity;
-            eActivity.attr("activity", activity.id);
-            var activityArg = invokeArg;
-            if (activityArg === null) {
-                activityArg = undefined;
-            }
-            if (typeof(activityArg) !== "undefined") {
-                eActivity.attr("data-arg", invokeArg);
-            }
+                var activity = this;
+                this.content = $("<div></div>");
+                this.id = activityName;
+                this.get = paper.app.get;
+                this.ajax = paper.app.ajax;
+                this._temp = true;
 
-            //Add activity-frame
-            var activityFrame = $("<div class='activity-frame fade'></div>").appendTo(eActivity);
-            activityFrame.attr("bg", "light");
+                this.onCreate = function(eActivity, invokeArg){
 
-            //Add content from the activity it self
-            var clone = activity.content.clone();
-            var content = $("<div></div>");
-            content.html(clone.html());
-            content.addClass("activity-body").addClass("fade");
-            content.attr("id", "body-" + activity.id);
-            content.removeAttr("activity");
-
-            //Call Activity.onCreate
-            if (typeof(activity.onCreate) !== "undefined") {
-                var succeed = activity.onCreate(content, activityArg);
-                if (succeed === false) {
-                    //Activity is still loading
-                    //Add loaded callback to continue initializing the activity when it is loaded
-                    activity.loaded = function () {
-                        activity.isLoaded = true;
-                        if (activity.visible) {
-                            // Hide load rotator and show content
-                            // (Only when the activity is visible, otherwise it will be called on the onVisible event)
-                            activityFrame.addClass("fade");
-                            setTimeout(function () {
-                                activityFrame.children(".paper-loading").remove();
-                                paper.initModules(content);
-                                content.appendTo(activityFrame);
-                                if(typeof(paper.lang) !== "undefined"){
-                                    paper.lang.updateLanguage(activity.element);
+                    activity.get(activity.id).done(function(data){
+                        $("body").append(data);
+                        setTimeout(function(){
+                            var newProp = app.activities[activity.id];
+                            if(typeof(newProp) !== "undefined"){
+                                var newActivity = callActivity(newProp);
+                                initActivity(newActivity);
+                                activity.onCreate = undefined;
+                                activity._temp = undefined;
+                                var loadedFunc = activity.loaded;
+                                for(var key in newActivity){
+                                    activity[key] = newActivity[key];
                                 }
-                                setTimeout(function () {
-                                    content.removeClass("fade");
-                                    activityFrame.removeClass("fade");
-                                }, 20);
-                            }, 200);
-                        }
-                    };
-                    //Add load rotator when the activity is still loading
-                    paper.loading.create().addClass("center").appendTo(activityFrame);
-                } else {
-                    //Append content to frame
+                                activity.loaded = loadedFunc;
+                                activity.isLoaded = false;
+                                app.activities[activity.id] = activity;
+
+                                var eActivityNew = buildActivity(app, activity, invokeArg, color);
+                                $("[activity='" + activity.id + "'] .paper-header").html(eActivityNew.children(".paper-header").html());
+                                $("[activity='" + activity.id + "'] style").remove();
+                                if(eActivityNew.children("style").length > 0){
+                                    $("[activity=" + activity.id + "]").prepend(eActivityNew.children("style"));
+                                }
+                                eActivity.html(eActivityNew.children(".paper-activity").html());
+                                activity.loaded();
+                            }else{
+                                console.error("Initialize " + activity.id + ": Failed to register");
+                                $("<div class='activity-empty'>" + paper.app.errorHandlers.notfound + "</div>").appendTo(eActivity);
+                                activity.loaded();
+                            }
+                        }, 20);
+                    }).fail(function(){
+                        console.error("Cannot find activity: " + activity.id);
+                        $("<div class='activity-empty'>" + paper.app.errorHandlers.notfound + "</div>").appendTo(eActivity);
+                        activity.loaded();
+                    });
+
+                    return false;
+                };
+
+            };
+            app.activities[emptyActivity.id] = emptyActivity;
+            return buildActivity(app, emptyActivity, invokeArg, color);
+        }
+    }
+
+    /**
+     * Build activity element from activity object
+     * @param app
+     * @param activity
+     * @param {string} color - Default color
+     * @param {string} title - Activity title
+     * @returns {*|jQuery|HTMLElement}
+     */
+    function buildActivity(app, activity, invokeArg, color){
+        //Reset settings
+        activity.loaded = function () {};
+        activity.isLoaded = false;
+
+        //Create jQuery object
+        var eActivity = $("<div class='paper-activity'></div>");
+        activity.element = eActivity;
+        eActivity.attr("activity", activity.id);
+        var activityArg = invokeArg;
+        if (activityArg === null) {
+            activityArg = undefined;
+        }
+        if (typeof(activityArg) !== "undefined") {
+            eActivity.attr("data-arg", invokeArg);
+        }
+
+        //Add activity-frame
+        var activityFrame = $("<div class='activity-frame fade'></div>").appendTo(eActivity);
+        activityFrame.attr("bg", "light");
+
+        //Add content from the activity it self
+        var clone = activity.content.clone();
+        var content = $("<div></div>");
+        content.html(clone.html());
+        content.addClass("activity-body").addClass("fade");
+        content.attr("id", "body-" + activity.id);
+        content.removeAttr("activity");
+
+        //Call Activity.onCreate
+        if (typeof(activity.onCreate) !== "undefined") {
+            var succeed = activity.onCreate(content, activityArg);
+            if (succeed === false) {
+                //Activity is still loading
+                //Add loaded callback to continue initializing the activity when it is loaded
+                activity.loaded = function () {
                     activity.isLoaded = true;
-                    paper.initModules(content);
-                    content.appendTo(activityFrame);
-                }
+                    if (activity.visible) {
+                        // Hide load rotator and show content
+                        // (Only when the activity is visible, otherwise it will be called on the onVisible event)
+                        activityFrame.addClass("fade");
+                        setTimeout(function () {
+                            activityFrame.children(".paper-loading").remove();
+                            paper.initModules(content);
+                            content.appendTo(activityFrame);
+                            if(typeof(paper.lang) !== "undefined"){
+                                paper.lang.updateLanguage(activity.element);
+                            }
+                            setTimeout(function () {
+                                content.removeClass("fade");
+                                activityFrame.removeClass("fade");
+                            }, 20);
+                        }, 200);
+                    }
+                };
+                //Add load rotator when the activity is still loading
+                paper.loading.create().addClass("center").appendTo(activityFrame);
             } else {
                 //Append content to frame
                 activity.isLoaded = true;
                 paper.initModules(content);
                 content.appendTo(activityFrame);
             }
-
-            //Create header
-            var hOptions = {color: color, title: activity.title, src: activity.src, pushLeft: activity.pushLeft};
-            if (typeof(activity.actions) !== "undefined") {
-                hOptions.actions = activity.actions;
-            }
-            var header = paper.header.create(hOptions);
-            paper.header.attach(header, eActivity);
-            activity.header = header;
-
-            //Add fade in class
-            eActivity.children(".paper-header").addClass("fade");
-
-            //Move <style> from activity-body to activity root
-            var styles = content.children("style");
-            if(styles.length > 0) {
-                styles.prependTo(eActivity);
-            }
-
-            return eActivity;
-        }else{
-            //Activity does not exists
-            //Show 'Not found' message
-            var eActivity = $("<div class='paper-activity'></div>");
-            eActivity.attr("activity", "undefined");
-            var activityArg = invokeArg;
-            if (activityArg === null) {
-                activityArg = undefined;
-            }
-            if (typeof(activityArg) !== "undefined") {
-                eActivity.attr("data-arg", invokeArg);
-            }
-            var activityFrame = $("<div class='activity-frame fade'></div>").appendTo(eActivity);
-
-            var activityBody = $("<div class='activity-body'></div>").appendTo(activityFrame);
-            var content = $("<div class='activity-empty'>" + paper.app.errorHandlers.notfound + "</div>").appendTo(activityBody);
-            content.attr("activity", activityName);
-            return eActivity;
+        } else {
+            //Append content to frame
+            activity.isLoaded = true;
+            paper.initModules(content);
+            content.appendTo(activityFrame);
         }
+
+        //Create header
+        var hOptions = {color: color, title: activity.title, src: activity.src, pushLeft: activity.pushLeft};
+        if(typeof(activity.hOptions) !== "undefined"){
+            for(var key in activity.hOptions){
+                hOptions[key] = activity.hOptions[key];
+            }
+        }
+        if (typeof(activity.actions) !== "undefined") {
+            hOptions.actions = activity.actions;
+        }
+        var header = paper.header.create(hOptions);
+        paper.header.attach(header, eActivity);
+        activity.header = header;
+
+        //Add fade in class
+        eActivity.children(".paper-header").addClass("fade");
+
+        //Move <style> from activity-body to activity root
+        var styles = content.children("style");
+        if(styles.length > 0) {
+            styles.prependTo(eActivity);
+        }
+
+        return eActivity;
     }
 
     /**
@@ -2052,7 +2167,7 @@ var paper = {
         }
         console.debug("Show Activity: " + activity.id);
         if(typeof(paper.lang) !== "undefined"){
-            paper.lang.updateLanguage($("[activity=" + activity.id + "]"));
+            paper.lang.updateLanguage($("[activity='" + activity.id + "']"));
         }
         activity.element.children(".activity-frame").removeClass("fade").children(".activity-body").removeClass("fade");
         activity.element.children(".paper-header").removeClass("fade");
@@ -2109,6 +2224,53 @@ var paper = {
         }
     }
 
+    function callActivity(prop){
+        var object = new prop["class"]();
+
+        object.content = prop.content;
+        object.id = prop.id;
+        object.visible = false;
+        object.isLoaded = false;
+        object.post = paper.app.post;
+        object.get = paper.app.get;
+        object.ajax = paper.app.ajax;
+        object.ajaxRegister = [];
+
+        return object;
+    }
+
+    function initActivity(activity, importedHtml){
+        var content = $(activity.content);
+        if(content.length == 0){
+            //Not found in DOM -> Search imports
+            var exists = false;
+            if(typeof(importedHtml) !== "undefined") {
+                for (var i = 0; i < importedHtml.length; i++) {
+                    var template = importedHtml[i];
+                    if (template.attr("activity") === activity.id) {
+                        //Copy template into div
+                        content = $("<div></div>").html(template.html());
+                        var attributes = template[0].attributes;
+                        $.each(attributes, function () {
+                            content.attr(this.name, this.value);
+                        });
+                        exists = true;
+                        break;
+                    }
+                }
+            }
+
+            if(!exists) {
+                //Create new element
+                content = $("<div></div>");
+            }
+        }else{
+            content.remove();
+        }
+        activity.content = content;
+        return activity;
+    }
+
     /**
      * Initialze application
      */
@@ -2162,17 +2324,7 @@ var paper = {
             console.info("init activities");
             for(var key in app.activities){
                 var prop = app.activities[key];
-                var object = new prop["class"]();
-
-                object.content = prop.content;
-                object.id = prop.id;
-                object.visible = false;
-                object.isLoaded = false;
-                object.post = paper.app.post;
-                object.get = paper.app.get;
-                object.ajax = paper.app.ajax;
-                object.ajaxRegister = [];
-
+                var object = callActivity(prop);
                 app.activities[key] = object;
             }
 
@@ -2190,34 +2342,7 @@ var paper = {
 
             //Init activities
             for(var key in app.activities){
-                var activity = app.activities[key];
-                var content = $(activity.content);
-                console.log("content length: " + activity.content);
-                if(content.length == 0){
-                    //Not found in DOM -> Search imports
-                    var exists = false;
-                    for(var i = 0; i < importedHtml.length; i++){
-                        var template = importedHtml[i];
-                        if(template.attr("activity") === key){
-                            //Copy template into div
-                            content = $("<div></div>").html(template.html());
-                            var attributes = template[0].attributes;
-                            $.each(attributes, function() {
-                                content.attr(this.name, this.value);
-                            });
-                            exists = true;
-                            break;
-                        }
-                    }
-
-                    if(!exists) {
-                        //Create new element
-                        content = $("<div></div>");
-                    }
-                }else{
-                    content.remove();
-                }
-                activity.content = content;
+                initActivity(app.activities[key], importedHtml);
             }
 
             //Init groups
@@ -2227,6 +2352,7 @@ var paper = {
                 if(typeof(object.activity_1) === "undefined"){
                     throw "'activity_1' must be declared";
                 }
+                object.activity_1 = encodeURI(object.activity_1);
                 object.id = key;
                 app.activityGroups[key] = object;
             }
@@ -3001,10 +3127,10 @@ var paper = {
                 }
 
                 if(oldUrlData.overlay === newUrlData.overlay &&
-                        oldUrlData.overlayArg === newUrlData.overlayArg &&
-                        oldUrlData.group === newUrlData.group &&
-                        oldUrlData.arg === newUrlData.arg &&
-                        oldUrlData.acts.length === newUrlData.acts.length){
+                    oldUrlData.overlayArg === newUrlData.overlayArg &&
+                    oldUrlData.group === newUrlData.group &&
+                    oldUrlData.arg === newUrlData.arg &&
+                    oldUrlData.acts.length === newUrlData.acts.length){
                     var same = true;
                     for(var i = 0; i < oldUrlData.acts.length; i++){
                         if(oldUrlData.acts[i].activity !== newUrlData.acts[i].activity ||
@@ -3368,7 +3494,7 @@ var paper = {
             }
             $(this).removeClass("danger");
         });
-        
+
         $("body").on("blur", ".paper-input select", function(){
             var label = $(this).parent().children("label");
             if($(this).find(":selected").val() === "0"){
@@ -4093,5 +4219,161 @@ var paper = {
     };
 
 
+
+})();
+(function(){
+
+    paper.tabs = {
+
+        init: function(element){
+            if(typeof(element) === "undefined"){
+                var e = $("body");
+            }else{
+                var e = $(element);
+            }
+            if(e.hasClass("paper-tabs")){
+                var selectedIndex = 0;
+                var tabs = e.children(".tab");
+                tabs.each(function(index){
+                    var left = index * (100 / tabs.length);
+                    var right = (tabs.length - index -1) * (100 / tabs.length);
+                    $(this).css("left", left + "%");
+                    $(this).css("right", right + "%");
+                    if($(this).hasClass("selected")){
+                        selectedIndex = index;
+                    }
+                });
+                paper.tabs.setSelectedTab(e, selectedIndex);
+            }else{
+                e.find(".paper-tabs").each(function(){
+                    paper.tabs.init(this);
+                });
+            }
+        },
+
+        create: function(options){
+            return new Tabs(options);
+        },
+
+        render: function(tabs, element){
+            var eTabs = $("<div class='paper-tabs'></div>");
+            if(tabs.getFor() !== null){
+                eTabs.attr("for", tabs.getFor());
+            }
+            eTabs.attr("value", tabs.getSelectedTab());
+            for(var i = 0; i < tabs.getTabs().length; i++){
+                var eTab = $("<div class='tab wrippels'>" + tabs.getTabs()[i] + "</div>");
+                if(tabs.getSelectedTab() === i){
+                    eTab.addClass("selected");
+                }
+                eTab.appendTo(eTabs);
+            }
+            if(tabs.getSelectionColor() !== null){
+                var eSelectionBar = $("<div class='selection-bar'></div>");
+                eSelectionBar.addClass(tabs.getSelectionColor());
+                eSelectionBar.appendTo(eTabs);
+            }
+            paper.tabs.init(eTabs);
+            eTabs.appendTo(element);
+        },
+
+        setSelectedTab: function(element, selectedIndex){
+            var tabContainer = $(element);
+            tabContainer.children(".tab").removeClass("selected");
+            tabContainer.attr("value", selectedIndex);
+            var selectedTab = tabContainer.children(".tab").eq(selectedIndex);
+            selectedTab.addClass("selected");
+            var selectionBar = tabContainer.children(".selection-bar");
+            selectionBar.css("left", selectedTab.css("left"));
+            selectionBar.css("right", selectedTab.css("right"));
+            var panelContainer = $(tabContainer.attr("for"));
+            if(panelContainer.length > 0){
+                var panels = panelContainer.children(".tab-panel");
+                panels.removeClass("selected").removeClass("before").removeClass("after");
+                panelContainer.children(".tab-panel").each(function(i){
+                    if(i < selectedIndex){
+                        $(this).addClass("before");
+                    }else if(i == selectedIndex){
+                        $(this).addClass("selected");
+                    }else if(i > selectedIndex){
+                        $(this).addClass("after");
+                    }
+                });
+            }
+            tabContainer.trigger("change", [selectedIndex]);
+        }
+
+    };
+
+    $("body").ready(function(){
+        $("body").on("click", ".paper-tabs .tab", function(){
+            paper.tabs.setSelectedTab($(this).parent(), $(this).index());
+        });
+        $(window).resize(function(){
+            var tabContainer = $(".paper-tabs");
+            var selectedTab = tabContainer.children(".tab.selected");
+            var selectionBar = tabContainer.children(".selection-bar");
+            selectionBar.css("left", selectedTab.css("left"));
+            selectionBar.css("right", selectedTab.css("right"));
+        });
+    });
+
+    function Tabs(options){
+        this.tabs = [];
+        this.selectedTab = 0;
+        this.selectionColor = null;
+        this.link = null;
+
+        if(typeof(options) !== "undefined"){
+            if(typeof(options.tabs) !== "undefined"){
+                this.tabs = options.tabs;
+            }
+            if(typeof(options.selectedTab) !== "undefined"){
+                this.selectedTab = options.selectedTab;
+            }
+            if(typeof(options.selectionColor) !== "undefined"){
+                this.selectionColor = options.selectionColor;
+            }
+            if(typeof(options.for) !== "undefined"){
+                this.link = options.for;
+            }
+        }
+    }
+
+    Tabs.prototype.setFor = function(link){
+        this.link = link;
+    };
+
+    Tabs.prototype.getFor = function(){
+        return this.link;
+    };
+
+    Tabs.prototype.setTabs = function(tabs){
+        this.tabs = tabs;
+    };
+
+    Tabs.prototype.getTabs = function(){
+        return this.tabs;
+    };
+
+    Tabs.prototype.setSelectionColor = function(color){
+        this.selectionColor = color;
+    };
+
+    Tabs.prototype.getSelectionColor = function(){
+        return this.selectionColor;
+    };
+
+    Tabs.prototype.render = function(element){
+        paper.tabs.render(this, element);
+    };
+
+    Tabs.prototype.setSelectedTab = function(index){
+        this.selectedTab = index;
+    };
+
+    Tabs.prototype.getSelectedTab = function(){
+        return this.selectedTab;
+    };
 
 })();

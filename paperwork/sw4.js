@@ -7,8 +7,8 @@ self.addEventListener('install', function (event) {
             return cache.addAll([
                 'index.html',
                 '/activities/',
-                '/js/_app.js',
-                '/js/_init.js',
+                '/js/app.js',
+                '/js/init.js',
                 '/images/',
                 '../../shared/images/icons/',
                 '../../shared/css/icons/',

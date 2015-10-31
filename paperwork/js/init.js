@@ -1,6 +1,5 @@
 
 app.group("home", function(){
-    this.title = "Documentation";
     this.leftAction = "menu";
     this.activity_1 = "home-list";
     this.activity_1_type = "large";

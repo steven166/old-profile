@@ -3,7 +3,10 @@
 </template>
 <script>
     app.activity("get-started", function(){
+
         this.title = "Get Started";
+        this.icon = "mdi-av-play-circle-fill";
+        this.hOptions = {size: "medium"};
 
         this.onCreate = function(){
             setTimeout(function(){

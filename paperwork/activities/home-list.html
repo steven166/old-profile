@@ -7,6 +7,7 @@
             margin-bottom: 20px;
             margin-left: 25%;
             box-shadow: rgba(0, 0, 0, 0.227451) 0px 3px 10px 0px, rgba(0, 0, 0, 0.156863) 0px 3px 10px 0px;
+            background-color: white;
             transition-property: all;
             transition-duration: 0.2s;
         }
@@ -14,6 +15,7 @@
         [activity=home-list][pos="xxo"] .list-container{
             width: 75%;
             margin-left: 12.5%;
+            margin-top: 72px;
         }
 
         [activity=home-list][pos="xoo"] .list-container{
@@ -21,6 +23,20 @@
             margin: 0px;
             padding: 0px;
             box-shadow: none;
+            background-color: transparent;
+        }
+
+        [activity=home-list] .activity-frame{
+            top: 0 !important;
+        }
+
+        [activity=home-list][pos="xoo"] .activity-frame{
+            top: 112px !important;
+            transition-duration: 0.2s;
+        }
+
+        .material-app .app-header{
+            height: 112px;
         }
     </style>
     <div class="list-container">
@@ -100,6 +116,7 @@
     app.activity("home-list", function(){
 
         var timeout;
+        this.hOptions = {size: "medium"};
 
         this.onCreate = function(eActivity){
             var urlData = app.getUrlData();
