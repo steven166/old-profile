@@ -7,7 +7,7 @@ var keyName = "session.key";
 
 var filter = {
     include_adult: true,
-    sort_by: 'popularity.asc',
+    sort_by: 'popularity.desc',
     'primary_release_date.gte': '',
     'primary_release_date.lte': ''
 };
