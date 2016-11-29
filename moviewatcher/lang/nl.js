@@ -33,6 +33,13 @@ var lang_nl = {
     "more": "Meer",
     "genres": "Genres",
 
+    "filters": "Filters",
+    "filter-adult": "Volwassen",
+    "filter-sort": "Sorteer op",
+    "filter-start-date": "Start release datum",
+    "filter-end-date": "Eind release datum",
+
+
     "rating": "Beoordeling:",
     "genre": "Genre:",
     "release-date": "Release datum:",

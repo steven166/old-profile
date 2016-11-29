@@ -33,6 +33,12 @@ var lang_en = {
     "more": "More",
     "genres": "Genres",
 
+    "filters": "Filters",
+    "filter-adult": "Includes Adults",
+    "filter-sort": "Sort on",
+    "filter-start-date": "Start release date",
+    "filter-end-date": "End release date",
+
     "rating": "Rating:",
     "genre": "Genre:",
     "release-date": "Release date:",
